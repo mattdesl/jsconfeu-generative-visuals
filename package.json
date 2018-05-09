@@ -20,10 +20,13 @@
     "three-buffer-vertex-data": "^1.1.0"
   },
   "devDependencies": {
-    "budo": "^11.2.0"
+    "browserify": "^16.2.2",
+    "budo": "^11.2.0",
+    "uglify-es": "^3.3.9"
   },
   "scripts": {
     "test": "node test.js",
+    "build": "browserify . | uglifyjs -cm > public/bundle.js",
     "start": "budo .:bundle.js --dir public/ --live"
   },
   "keywords": [],
