@@ -1,20 +1,14 @@
 # jsconf-eu-prototype
 
-[![experimental](http://badges.github.io/stability-badges/dist/experimental.svg)](http://github.com/badges/stability-badges)
+Szymon and I will hack on WebGL things here.
 
+Git clone, then `npm install` and `npm run start` (dev mode) or `npm run build` (output prod static site).
 
+Please use at least:
 
-## Install
-
-Use [npm](https://npmjs.com/) to install.
-
-```sh
-npm install jsconf-eu-prototype --save
-```
-
-## Usage
-
-[![NPM](https://nodei.co/npm/jsconf-eu-prototype.png)](https://www.npmjs.com/package/jsconf-eu-prototype)
+node@8.10.0
+npm@5.7.1
+Chrome 66
 
 ## License
 
