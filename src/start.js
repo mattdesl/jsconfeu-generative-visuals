@@ -12,7 +12,7 @@ function startApplication () {
   const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, -100, 100);
   const scene = createScene();
 
-  const tickFPS = 14;
+  const tickFPS = 24;
 
   let tickFrame = 0;
   let lastTickTime = 0;

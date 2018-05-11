@@ -30,6 +30,7 @@ module.exports = class SimpleBlob extends THREE.Object3D {
 
     const material = shader({
       uniforms: {
+        randomOffset: { value: RND.randomFloat(0, 1) },
         centroid: { value: new THREE.Vector2() },
         direction: { value: new THREE.Vector2(1, 0) },
         velocity: { value: new THREE.Vector2() },
@@ -42,6 +43,7 @@ module.exports = class SimpleBlob extends THREE.Object3D {
 
     const fillGeometry = new Polygon2D();
     this.fill = new THREE.Mesh(fillGeometry, material);
+    this.fill.frustumCulled = false;
     this.add(this.fill);
 
     this.generate();

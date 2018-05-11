@@ -4,6 +4,7 @@ uniform float frame;
 uniform float time;
 uniform vec2 centroid;
 uniform vec2 direction;
+uniform float randomOffset;
 
 varying vec2 vPosition;
 varying float vSize;
@@ -20,14 +21,14 @@ vec2 motion (vec2 position, vec2 normal) {
 
   // high freq first
   float frequency = 1000.0;
-  float n = noise(vec4(position.xy * frequency, 0.0, frame));
+  float n = noise(vec4(position.xy * frequency, randomOffset, randomOffset + frame));
   float amplitude = 0.0075;
   noiseValues.x = n;
   ret += normal * n * amplitude;
 
   // now low freq
   frequency = 3.0;
-  n = noise(vec4(position.xy * frequency, 0.0, frame));
+  n = noise(vec4(position.xy * frequency, randomOffset, randomOffset + frame));
   noiseValues.y = n;
   amplitude = 0.025;
   ret += normal * n * amplitude;
