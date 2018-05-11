@@ -48,12 +48,19 @@ module.exports = class WormScene extends THREE.Object3D {
     }
   }
 
-  update(time, dt) {
+  update() {
     this.flock.tick();
 
     for (let i = 0; i < this.meshes.length; i++) {
+      const px = this.meshes[i].position.x;
+      const py = this.meshes[i].position.y;
+
       const x = this.flock.boids[i][0];
       const y = this.flock.boids[i][1];
+
+      // FIXME: for this to make more sense, we would have to properly align all paths in worms.json
+      const angle = Math.atan2(py - y, px - x);
+      this.meshes[i].rotation.z = angle;
 
       this.meshes[i].position.set(x, y, 0);
     }
