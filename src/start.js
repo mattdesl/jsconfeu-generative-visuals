@@ -68,7 +68,7 @@ function startApplication() {
 
   function createScene() {
     const scene = new THREE.Scene();
-    // scene.add(new TestScene());
+    scene.add(new TestScene());
     scene.add(new WormsScene());
     return scene;
   }

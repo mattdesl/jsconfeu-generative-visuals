@@ -1,7 +1,11 @@
 uniform float frame;
 
+uniform float wiggleAmplitude;
+uniform float wiggleSpeed;
+uniform float wigglePosMod;
+
 vec2 wiggle(vec2 position) {
-  position.x += (sin(frame * 10.0) * cos(position.y * 2.0)) * 0.2;
+  position.x += (sin(frame * wiggleSpeed) * cos(position.y * wigglePosMod)) * wiggleAmplitude;
 
   return position;
 }
