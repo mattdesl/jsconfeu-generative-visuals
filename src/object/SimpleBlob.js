@@ -3,32 +3,18 @@ const getCircularBlob = require('../geometry/getCirclularBlob');
 const getSquareBlob = require('../geometry/getSquareBlob');
 const RND = require('../util/random');
 const { resampleLineByCount } = require('../util/polyline');
+const makeShader = require("../util/makeShader");
 
 const Polygon = require('../geometry/Polygon');
 
 const path = require('path');
 const glslify = require('glslify');
 
-const shader = (opt = {}) => {
-  return new THREE.ShaderMaterial({
-    vertexShader: opt.vertexShader,
-    fragmentShader: opt.fragmentShader,
-    uniforms: Object.assign({
-      frame: { value: 0 },
-      time: { value: 0 }
-    }, opt.uniforms),
-    side: defined(opt.side, THREE.FrontSide),
-    transparent: Boolean(opt.transparent),
-    depthTest: Boolean(opt.depthTest),
-    depthWrite: Boolean(opt.depthWrite)
-  });
-};
-
 module.exports = class SimpleBlob extends THREE.Object3D {
   constructor (opt = {}) {
     super();
 
-    const material = shader({
+    const material = makeShader({
       uniforms: {
         color: { value: new THREE.Color(opt.color || 'white') },
         opacity: { value: defined(opt.opacity, 1) }

@@ -1,12 +1,13 @@
-const rightNow = require('right-now');
+const rightNow = require("right-now");
 
-const TestScene = require('./scene/TestScene');
+const TestScene = require("./scene/TestScene");
+const WormsScene = require("./scene/WormsScene");
 
-const canvas = document.querySelector('#canvas');
+const canvas = document.querySelector("#canvas");
 
-function startApplication () {
+function startApplication() {
   const renderer = new THREE.WebGLRenderer({ antialias: true, canvas });
-  renderer.setClearColor('#FBF9F3', 1);
+  renderer.setClearColor("#FBF9F3", 1);
 
   const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, -100, 100);
   const scene = createScene();
@@ -17,14 +18,15 @@ function startApplication () {
   const tickFPS = 14;
 
   resize();
-  window.addEventListener('resize', resize);
+  window.addEventListener("resize", resize);
   renderer.animate(animate);
 
-  function resize () {
+  function resize() {
     const width = window.innerWidth;
     const height = window.innerHeight;
     const pixelRatio = window.devicePixelRatio;
-    if (renderer.getPixelRatio() !== pixelRatio) renderer.setPixelRatio(pixelRatio);
+    if (renderer.getPixelRatio() !== pixelRatio)
+      renderer.setPixelRatio(pixelRatio);
     renderer.setSize(width, height);
 
     const aspect = width / height;
@@ -38,7 +40,7 @@ function startApplication () {
     camera.updateProjectionMatrix();
   }
 
-  function animate () {
+  function animate() {
     const time = clock.getElapsedTime();
     const dt = clock.getDelta();
 
@@ -47,26 +49,27 @@ function startApplication () {
     const deltaTimeMS = now - lastTime;
 
     if (deltaTimeMS > frameIntervalMS) {
-      now = now - (deltaTimeMS % frameIntervalMS);
+      now = now - deltaTimeMS % frameIntervalMS;
       lastTime = now;
-      traverse('frame', frame++, time);
+      traverse("frame", frame++, time);
     }
 
-    traverse('update', time, dt);
+    traverse("update", time, dt);
     renderer.render(scene, camera);
   }
 
-  function traverse (fn, ...args) {
+  function traverse(fn, ...args) {
     scene.traverse(t => {
-      if (typeof t[fn] === 'function') {
+      if (typeof t[fn] === "function") {
         t[fn](...args);
       }
     });
   }
 
-  function createScene () {
+  function createScene() {
     const scene = new THREE.Scene();
-    scene.add(new TestScene());
+    // scene.add(new TestScene());
+    scene.add(new WormsScene());
     return scene;
   }
 }
