@@ -113,8 +113,8 @@ void main () {
   vec3 orig = fragColor;
   // fragColor += (1.0 - center) * 0.1;
   float rnd = random(vec2(gl_FragCoord.x + frame * 0.0005, gl_FragCoord.y));
-  fragColor = mix(fragColor, orig * 1.2, gradient * step(0.4, rnd));
-  // fragColor = mix(fragColor, fragColor * 0.95, (1.0 - center));
+  // fragColor = mix(fragColor, fragColor * 0.995, (1.0 - center));
+  fragColor = mix(fragColor, orig * 1.2, gradient * step(0.2, rnd));
   // fragColor += 0.1 * step(0.05, rnd) * 0.5;
   // float gradient = (atan(vRot.y, vRot.x) + PI) / (PI * 2.0);
   // float gradient = (atan(vRot.y, vRot.x) + PI) / (2.0 * PI);

@@ -28,9 +28,10 @@ module.exports = class SimpleBlob extends THREE.Object3D {
   constructor (opt = {}) {
     super();
 
+    const randomOffset = RND.randomFloat(0, 1);
     const material = shader({
       uniforms: {
-        randomOffset: { value: RND.randomFloat(0, 1) },
+        randomOffset: { value: randomOffset },
         centroid: { value: new THREE.Vector2() },
         direction: { value: new THREE.Vector2(1, 0) },
         velocity: { value: new THREE.Vector2() },
@@ -46,6 +47,8 @@ module.exports = class SimpleBlob extends THREE.Object3D {
     this.fill.frustumCulled = false;
     this.add(this.fill);
 
+    // avoid z-fighting a bit...
+    this.position.z = randomOffset;
     this.generate();
   }
 

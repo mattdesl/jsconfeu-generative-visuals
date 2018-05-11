@@ -6,6 +6,9 @@ const TestScene = require('./scene/TestScene');
 const canvas = document.querySelector('#canvas');
 
 function startApplication () {
+  const targetAspect = 7680 / 1080;
+  const useTargetAspect = true;
+
   const renderer = new THREE.WebGLRenderer({ antialias: true, canvas });
   renderer.setClearColor('#FBF9F3', 1);
 
@@ -33,20 +36,30 @@ function startApplication () {
 
   function resize (width, height, pixelRatio) {
     width = defined(width, window.innerWidth);
-    height = defined(height, window.innerHeight);
+    if (useTargetAspect) {
+      height = Math.floor(width / targetAspect);
+    } else {
+      height = defined(height, window.innerHeight);
+    }
     pixelRatio = defined(pixelRatio, window.devicePixelRatio);
 
     if (renderer.getPixelRatio() !== pixelRatio) renderer.setPixelRatio(pixelRatio);
     renderer.setSize(width, height);
 
     const aspect = width / height;
-    if (width > height) {
-      camera.scale.x = aspect;
-      camera.scale.y = 1;
-    } else {
-      camera.scale.x = aspect;
-      camera.scale.y = 1;
-    }
+    // camera.scale.x = 1;
+    // camera.scale.y = 1 / aspect;
+
+    camera.scale.x = aspect;
+    camera.scale.y = 1;
+
+    // if (width > height) {
+    //   camera.scale.x = aspect;
+    //   camera.scale.y = 1;
+    // } else {
+    //   camera.scale.x = aspect;
+    //   camera.scale.y = 1;
+    // }
     camera.updateProjectionMatrix();
   }
 

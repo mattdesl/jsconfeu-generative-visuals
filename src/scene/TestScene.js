@@ -13,7 +13,7 @@ module.exports = class TestScene extends THREE.Object3D {
       '#DF1378',
       '#0C2AD9',
       '#FEC3BE',
-      // '#DDE4F0'
+      '#DDE4F0',
       '#7A899C'
     ].map(c => new THREE.Color(c));
 
@@ -27,6 +27,7 @@ module.exports = class TestScene extends THREE.Object3D {
     const getRandomEdgePosition = () => {
       const radius = RND.randomFloat(0.75, 1.5);
       const v = new THREE.Vector2().fromArray(RND.randomCircle([], radius));
+      v.x *= RND.randomFloat(1, 8);
       return v;
     };
 
@@ -48,12 +49,12 @@ module.exports = class TestScene extends THREE.Object3D {
 
       const p = getRandomEdgePosition();
       mesh.position.set(p.x, p.y, 0);
-      mesh.scale.setScalar(RND.randomFloat(0.5, 3));
+      mesh.scale.setScalar(RND.randomFloat(1, 4));
       mesh.visible = true;
 
       const other = p.clone();
       const randomDirection = new THREE.Vector2().fromArray(RND.randomCircle([], 1));
-      const randomLength = RND.randomFloat(0.05, 0.15);
+      const randomLength = RND.randomFloat(0.05, 0.75);
       other.addScaledVector(randomDirection, randomLength);
       mesh.fill.material.visible = false;
       anime({
@@ -74,7 +75,7 @@ module.exports = class TestScene extends THREE.Object3D {
     };
 
     next();
-    setInterval(next, 300);
+    setInterval(next, 200);
     // const refresh = () => {
 
     // };
