@@ -59,6 +59,6 @@ module.exports = function getCircularBlob (opt = {}) {
   curve.tension = RND.randomFloat(1) > 0.5 ? 0 : RND.randomFloat(0, 1);
   curve.curveType = 'catmullrom';
 
-  const pointCount = 40;
+  const pointCount = 30;
   return curve.getSpacedPoints(pointCount).slice(0, pointCount).map(p => new THREE.Vector2().copy(p));
 };

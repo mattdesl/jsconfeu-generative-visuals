@@ -1,7 +1,10 @@
 const earcut = require('earcut');
-const getDimensions = require('../util/getDimensions');
 const flatten = require('../util/flattenVertices');
+const RND = require('../util/random');
 const buffer = require('three-buffer-vertex-data');
+const unlerp = require('unlerp');
+
+const defaultRandomFunc = (point, index, list) => RND.randomFloat(0, 1);
 
 // Given a set of 2D or 3D vectors, will triangulate them as a closed polygon
 // This is 'sorta' fast, but probably better to do per-frame motion in vertex shader,
@@ -9,15 +12,42 @@ const buffer = require('three-buffer-vertex-data');
 module.exports = class Polygon extends THREE.BufferGeometry {
   constructor (points) {
     super();
+    this.boundingBox2 = new THREE.Box2();
+    this.points = null;
     if (points) this.setPoints(points);
   }
 
+  setRandomAttributes (fn) {
+    if (this.points == null) throw new Error('must call setPoints prior to this');
+
+    fn = fn || defaultRandomFunc;
+
+    const randoms = this.points.map((p, i, list) => {
+      return fn(p, i, list);
+    });
+    buffer.attr(this, 'random', randoms, 1);
+  }
+
   setPoints (points) {
-    const DEFAULT_DIMENSIONS = 2;
-    const dimensions = points.length > 0 ? getDimensions(points[0]) : DEFAULT_DIMENSIONS;
+    this.points = points;
+
     const array = flatten(points);
     const indices = earcut(array);
-    buffer.attr(this, 'position', array, dimensions);
+
+    const box = this.boundingBox2;
+    box.makeEmpty();
+    box.setFromPoints(points);
+
+    const width = box.max.x - box.min.x;
+    const height = box.max.y - box.min.y;
+    const uvs = points.map(p => {
+      return [
+        width === 0 ? 0 : unlerp(box.min.x, box.max.x, p.x),
+        height === 0 ? 0 : unlerp(box.min.y, box.max.y, p.y)
+      ];
+    });
+    buffer.attr(this, 'position', array, 2);
+    buffer.attr(this, 'uv', uvs, 2);
     buffer.index(this, indices);
   }
 

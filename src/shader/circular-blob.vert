@@ -1,5 +1,14 @@
+attribute float random;
+
 uniform float frame;
 uniform float time;
+uniform vec2 centroid;
+uniform vec2 direction;
+
+varying vec2 vPosition;
+varying float vSize;
+varying vec2 vUv;
+varying vec2 noiseValues;
 
 #pragma glslify: PI = require('glsl-pi');
 #pragma glslify: noise = require('glsl-noise/simplex/4d');
@@ -10,27 +19,22 @@ vec2 motion (vec2 position, vec2 normal) {
   float frameSpeed = frame;
 
   // high freq first
-  float frequency = 100.0;
+  float frequency = 1000.0;
   float n = noise(vec4(position.xy * frequency, 0.0, frame));
-  float amplitude = 0.015;
+  float amplitude = 0.0075;
+  noiseValues.x = n;
   ret += normal * n * amplitude;
 
   // now low freq
   frequency = 3.0;
   n = noise(vec4(position.xy * frequency, 0.0, frame));
+  noiseValues.y = n;
   amplitude = 0.025;
   ret += normal * n * amplitude;
 
-  // float noiseRadius = 0.35;
-  // float noiseScale = 2.0;
-  // float t = frame;
-  // float angle = PI * 2.0 * t;
-  // vec2 circ = vec2(cos(angle), sin(angle));
-  // n = noise(vec4(position.xy * noiseScale, circ * noiseRadius));
-  // amplitude = 0.04;
-  // ret += normal * n * amplitude;
-
-  // ret.x += sin(time);
+  float targetDistance = 1.0;
+  vec2 target = centroid + direction * targetDistance;
+  vec2 dirToTarget = ret - target;
   return ret;
 }
 
@@ -38,4 +42,6 @@ void main () {
   vec2 normal = normalize(position.xy);
   vec2 pos = motion(position.xy, normal);
   gl_Position = projectionMatrix * modelViewMatrix * vec4(pos.xy, 0.0, 1.0);
+  vPosition = pos;
+  vUv = uv;
 }

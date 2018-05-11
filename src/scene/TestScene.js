@@ -11,7 +11,7 @@ module.exports = class TestScene extends THREE.Object3D {
       '#DF1378',
       '#0C2AD9',
       '#FEC3BE',
-      '#DDE4F0',
+      // '#DDE4F0'
       '#7A899C'
     ].map(c => new THREE.Color(c));
 
@@ -32,7 +32,7 @@ module.exports = class TestScene extends THREE.Object3D {
       mesh.generate();
     };
     refresh();
-    setInterval(() => refresh(), 500);
+    setInterval(() => refresh(), 2500);
     // window.addEventListener('click', () => mesh.generate());
   }
 

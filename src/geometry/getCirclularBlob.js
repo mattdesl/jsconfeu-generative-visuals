@@ -20,6 +20,6 @@ module.exports = function getCircularBlob (opt = {}) {
   curve.closed = true;
   curve.curveType = 'chordal';
 
-  const pointCount = 10;
+  const pointCount = 30;
   return curve.getSpacedPoints(pointCount).slice(0, pointCount).map(p => new THREE.Vector2().copy(p));
 };

@@ -4,7 +4,7 @@ const getSquareBlob = require('../geometry/getSquareBlob');
 const RND = require('../util/random');
 const { resampleLineByCount } = require('../util/polyline');
 
-const Polygon = require('../geometry/Polygon');
+const Polygon2D = require('../geometry/Polygon2D');
 
 const path = require('path');
 const glslify = require('glslify');
@@ -30,6 +30,9 @@ module.exports = class SimpleBlob extends THREE.Object3D {
 
     const material = shader({
       uniforms: {
+        centroid: { value: new THREE.Vector2() },
+        direction: { value: new THREE.Vector2(1, 0) },
+        velocity: { value: new THREE.Vector2() },
         color: { value: new THREE.Color(opt.color || 'white') },
         opacity: { value: defined(opt.opacity, 1) }
       },
@@ -37,7 +40,7 @@ module.exports = class SimpleBlob extends THREE.Object3D {
       fragmentShader: glslify(path.resolve(__dirname, '../shader/circular-blob.frag'))
     });
 
-    const fillGeometry = new Polygon();
+    const fillGeometry = new Polygon2D();
     this.fill = new THREE.Mesh(fillGeometry, material);
     this.add(this.fill);
 
@@ -49,10 +52,17 @@ module.exports = class SimpleBlob extends THREE.Object3D {
     const blobPath = RND.randomFloat(1) > 0.5 ? getCircularBlob() : getSquareBlob();
 
     // resample along the path so we can add high frequency noise to give it rough edges in vert shader
-    const finalCount = 100;
+    const finalCount = 200;
     this.path = resampleLineByCount(blobPath, finalCount, true);
 
+    // compute centroid for animations
+    const centroid = this.path.reduce((sum, point) => {
+      return sum.add(point);
+    }, new THREE.Vector2()).divideScalar(this.path.length);
+
     this.fill.geometry.setPoints(this.path);
+    this.fill.geometry.setRandomAttributes();
+    this.fill.material.uniforms.centroid.value.copy(centroid);
   }
 
   update (time, dt) {
