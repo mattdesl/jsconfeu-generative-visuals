@@ -2,6 +2,7 @@ uniform float time;
 uniform float frame;
 uniform float opacity;
 uniform vec3 color;
+uniform float randomOffset;
 
 varying vec2 vUv;
 varying vec2 vPosition;
@@ -101,7 +102,7 @@ void main () {
 
   // float noise = step(0.25, Value3D(vec3(vUv.xy * 250.0, 1.0 * frame)));
 
-  float angle = time * 0.05;
+  float angle = randomOffset * PI * 2.0 + time * 0.05;
   float radius = 0.5;
   vec2 direction = vec2(cos(angle), sin(angle));
   vec2 start = 0.5 + direction * -radius;
@@ -112,7 +113,7 @@ void main () {
   float center = length(vUv - 0.5);
   vec3 orig = fragColor;
   // fragColor += (1.0 - center) * 0.1;
-  float rnd = random(vec2(gl_FragCoord.x + frame * 0.0005, gl_FragCoord.y));
+  float rnd = random(vec2(gl_FragCoord.x + randomOffset + frame * 0.0005, gl_FragCoord.y));
   // fragColor = mix(fragColor, fragColor * 0.995, (1.0 - center));
   fragColor = mix(fragColor, orig * 1.2, gradient * step(0.2, rnd));
   // fragColor += 0.1 * step(0.05, rnd) * 0.5;

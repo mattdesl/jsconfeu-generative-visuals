@@ -42,7 +42,11 @@ class Rand {
   }
 
   randomSign () {
-    return this.random() > 0.5 ? 1 : -1;
+    return this.randomBoolean() ? 1 : -1;
+  }
+
+  randomBoolean () {
+    return this.random() > 0.5;
   }
 
   randomFloat (min, max) {
@@ -139,7 +143,8 @@ class Rand {
   }
 }
 
-const initialSeed = getRandomSeed();
+// const initialSeed = getRandomSeed();
+const initialSeed = '37176';
 module.exports = new Rand(initialSeed);
 
 module.exports.createInstance = (seed, opt) => new Rand(seed, opt);
@@ -149,4 +154,4 @@ Rand.getRandomSeed = getRandomSeed;
 function getRandomSeed () {
   const seed = String(Math.floor(Math.random() * 100000));
   return seed;
-};
+}

@@ -2,6 +2,7 @@ attribute float random;
 
 uniform float frame;
 uniform float time;
+uniform float animate;
 uniform vec2 centroid;
 uniform vec2 direction;
 uniform float randomOffset;
@@ -16,19 +17,18 @@ varying vec2 noiseValues;
 
 vec2 motion (vec2 position, vec2 normal) {
   vec2 ret = position;
-
-  float frameSpeed = frame;
+  float timeScaled = 0.25 * time;
 
   // high freq first
   float frequency = 1000.0;
-  float n = noise(vec4(position.xy * frequency, randomOffset, randomOffset + frame));
+  float n = noise(vec4(position.xy * frequency, randomOffset, randomOffset + time));
   float amplitude = 0.0075;
   noiseValues.x = n;
   ret += normal * n * amplitude;
 
   // now low freq
   frequency = 3.0;
-  n = noise(vec4(position.xy * frequency, randomOffset, randomOffset + frame));
+  n = noise(vec4(position.xy * frequency, randomOffset, randomOffset + timeScaled));
   noiseValues.y = n;
   amplitude = 0.025;
   ret += normal * n * amplitude;
@@ -36,6 +36,9 @@ vec2 motion (vec2 position, vec2 normal) {
   float targetDistance = 1.0;
   vec2 target = centroid + direction * targetDistance;
   vec2 dirToTarget = ret - target;
+
+  ret = mix(centroid, ret, animate);
+
   return ret;
 }
 

@@ -31,7 +31,7 @@ module.exports = function getCircularBlob (opt = {}) {
 
   const minDim = 0.25;
   const maxDim = 1.0;
-  const dimScale = RND.randomFloat(0.25, 2);
+  const dimScale = RND.randomFloat(0.15, 1.5);
   width = RND.randomFloat(minDim, maxDim);
   height = RND.randomFloat(minDim, maxDim);
 

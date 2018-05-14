@@ -5,8 +5,9 @@ const newArray = require('new-array');
 const anime = require('animejs');
 
 module.exports = class TestScene extends THREE.Object3D {
-  constructor () {
+  constructor (app) {
     super();
+    this.app = app;
 
     const colors = [
       '#313F61',
@@ -24,11 +25,24 @@ module.exports = class TestScene extends THREE.Object3D {
       return mesh;
     });
 
-    const getRandomEdgePosition = () => {
-      const radius = RND.randomFloat(0.75, 1.5);
-      const v = new THREE.Vector2().fromArray(RND.randomCircle([], radius));
-      v.x *= RND.randomFloat(1, 8);
-      return v;
+    const getRandomPosition = () => {
+      const edges = [
+        [ new THREE.Vector2(-1, -1), new THREE.Vector2(1, -1) ],
+        [ new THREE.Vector2(1, -1), new THREE.Vector2(1, 1) ],
+        [ new THREE.Vector2(1, 1), new THREE.Vector2(-1, 1) ],
+        [ new THREE.Vector2(-1, 1), new THREE.Vector2(-1, -1) ]
+      ];
+      const edgeIndex = RND.randomInt(edges.length);
+      const isTopOrBottom = edgeIndex === 0 || edgeIndex === 2;
+      const edge = edges[edgeIndex];
+      const t = isTopOrBottom
+        ? (RND.randomBoolean() ? RND.randomFloat(0.0, 0.45) : RND.randomFloat(0.55, 1))
+        : RND.randomFloat(0, 1);
+      const vec = edge[0].clone().lerp(edge[1], t);
+      vec.x *= RND.randomFloat(1.0, 1.2);
+      vec.y *= RND.randomFloat(1.0, 2);
+      vec.multiply(app.unitScale);
+      return vec;
     };
 
     const next = () => {
@@ -47,16 +61,45 @@ module.exports = class TestScene extends THREE.Object3D {
       color.b = clamp(color.b, 0, 1);
       mesh.generate();
 
-      const p = getRandomEdgePosition();
+      const p = getRandomPosition();
+      const scale = RND.randomFloat(0.5, 4);
+      // p.y += scale * 0.5;
+      mesh.scale.setScalar(scale);
       mesh.position.set(p.x, p.y, 0);
-      mesh.scale.setScalar(RND.randomFloat(1, 4));
       mesh.visible = true;
 
-      const other = p.clone();
+      const other = mesh.position.clone();
+      other.y *= -1;
+
+      // const other = new THREE.Vector2().copy(mesh.position);
+      // const randomDirection = new THREE.Vector2().copy(other).normalize();
       const randomDirection = new THREE.Vector2().fromArray(RND.randomCircle([], 1));
-      const randomLength = RND.randomFloat(0.05, 0.75);
+      const randomLength = RND.randomFloat(0.1, 5);
+      randomDirection.y /= app.unitScale.x;
+
       other.addScaledVector(randomDirection, randomLength);
+      console.count('emit');
+
       mesh.fill.material.visible = false;
+      mesh.fill.material.uniforms.animate.value = 0;
+
+      mesh.rotation.z = RND.randomFloat(-1, 1) * Math.PI * 2;
+      const newAngle = mesh.rotation.z + RND.randomFloat(-1, 1) * Math.PI * 2 * 0.25;
+      const startDelay = RND.randomFloat(0, 15000);
+      anime({
+        targets: mesh.fill.material.uniforms.animate,
+        value: 1,
+        easing: 'easeOutQuad',
+        delay: startDelay,
+        duration: 5000
+      });
+      anime({
+        targets: mesh.rotation,
+        z: newAngle,
+        easing: 'easeOutQuad',
+        delay: startDelay,
+        duration: 10000
+      });
       anime({
         targets: mesh.position,
         x: other.x,
@@ -64,24 +107,50 @@ module.exports = class TestScene extends THREE.Object3D {
         begin: () => {
           mesh.fill.material.visible = true;
         },
-        easing: 'easeOutElastic',
-        delay: RND.randomFloat(0, 2500),
-        duration: RND.randomFloat(1500, 2000)
+        easing: 'easeOutQuad',
+        delay: startDelay,
+        duration: RND.randomFloat(40000, 60000)
       }).finished.then(() => {
-        setTimeout(() => {
-          mesh.visible = false;
-        }, RND.randomFloat(2500, 3500));
+        anime({
+          targets: mesh.fill.material.uniforms.animate,
+          value: 0,
+          complete: () => {
+            mesh.visible = false;
+            next();
+          },
+          easing: 'easeInExpo',
+          delay: RND.randomFloat(100, 2000),
+          duration: 2000
+        });
       });
     };
 
-    next();
-    setInterval(next, 200);
-    // const refresh = () => {
+    const nextParticles = () => {
+      const emitCount = RND.randomInt(5, 6);
+      for (let i = 0; i < emitCount; i++) {
+        next();
+      }
+    };
 
+    // const sphere = new THREE.Mesh(
+    //   new THREE.CircleGeometry(1, 32),
+    //   new THREE.MeshBasicMaterial({ color: 'red' })
+    // );
+    // this.add(sphere);
+    // const start =
+    // sphere.position.x = 1 * app.unitScale.x;
+    // sphere.position.y = 0;
+
+    // const nextTime = () => {
+    //   setTimeout(() => {
+    //     nextParticles();
+    //     nextTime();
+    //   }, RND.randomFloat(30000, 50000));
     // };
-    // refresh();
-    // setInterval(() => refresh(), 2500);
-    // window.addEventListener('click', () => mesh.generate());
+    for (let i = 0; i < 40; i++) {
+      next();
+    }
+    // nextTime();
   }
 
   update (time, dt) {

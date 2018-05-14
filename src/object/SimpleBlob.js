@@ -31,6 +31,7 @@ module.exports = class SimpleBlob extends THREE.Object3D {
     const randomOffset = RND.randomFloat(0, 1);
     const material = shader({
       uniforms: {
+        animate: { value: 0 },
         randomOffset: { value: randomOffset },
         centroid: { value: new THREE.Vector2() },
         direction: { value: new THREE.Vector2(1, 0) },

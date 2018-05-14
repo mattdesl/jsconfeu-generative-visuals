@@ -13,7 +13,14 @@ function startApplication () {
   renderer.setClearColor('#FBF9F3', 1);
 
   const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, -100, 100);
-  const scene = createScene();
+  const scene = new THREE.Scene();
+
+  const app = {
+    camera,
+    scene,
+    unitScale: new THREE.Vector2(1, 1)
+    // will contain some other properties for scenes to use, like width/height
+  };
 
   const tickFPS = 24;
 
@@ -31,6 +38,8 @@ function startApplication () {
 
   resize();
   window.addEventListener('resize', () => resize());
+  createScene(scene);
+
   if (recordSettings.enabled) record();
   else startLoop();
 
@@ -50,8 +59,13 @@ function startApplication () {
     // camera.scale.x = 1;
     // camera.scale.y = 1 / aspect;
 
+    // camera.left = 0;
+    // camera.top = 0;
+    // camera.right = width;
+    // camera.bottom = height;
     camera.scale.x = aspect;
     camera.scale.y = 1;
+    app.unitScale.x = aspect;
 
     // if (width > height) {
     //   camera.scale.x = aspect;
@@ -61,6 +75,10 @@ function startApplication () {
     //   camera.scale.y = 1;
     // }
     camera.updateProjectionMatrix();
+    app.width = width;
+    app.height = height;
+    app.pixelRatio = pixelRatio;
+    app.aspect = aspect;
   }
 
   function startLoop () {
@@ -133,10 +151,8 @@ function startApplication () {
     });
   }
 
-  function createScene () {
-    const scene = new THREE.Scene();
-    scene.add(new TestScene());
-    return scene;
+  function createScene (scene) {
+    scene.add(new TestScene(app));
   }
 }
 
