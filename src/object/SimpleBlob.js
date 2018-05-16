@@ -4,56 +4,25 @@ const getSquareBlob = require('../geometry/getSquareBlob');
 const RND = require('../util/random');
 const { resampleLineByCount } = require('../util/polyline');
 
+const getRandomMaterial = require('../material/getRandomMaterial');
 const Polygon2D = require('../geometry/Polygon2D');
+const BaseObject = require('./BaseObject');
 
-const path = require('path');
-const glslify = require('glslify');
+module.exports = class SimpleBlob extends BaseObject {
+  constructor (app) {
+    super(app);
+    this.app = app;
 
-const shader = (opt = {}) => {
-  return new THREE.ShaderMaterial({
-    vertexShader: opt.vertexShader,
-    fragmentShader: opt.fragmentShader,
-    uniforms: Object.assign({
-      frame: { value: 0 },
-      time: { value: 0 }
-    }, opt.uniforms),
-    side: defined(opt.side, THREE.FrontSide),
-    transparent: Boolean(opt.transparent),
-    depthTest: Boolean(opt.depthTest),
-    depthWrite: Boolean(opt.depthWrite)
-  });
-};
-
-module.exports = class SimpleBlob extends THREE.Object3D {
-  constructor (opt = {}) {
-    super();
-
-    const randomOffset = RND.randomFloat(0, 1);
-    const material = shader({
-      uniforms: {
-        animate: { value: 0 },
-        randomOffset: { value: randomOffset },
-        centroid: { value: new THREE.Vector2() },
-        direction: { value: new THREE.Vector2(1, 0) },
-        velocity: { value: new THREE.Vector2() },
-        color: { value: new THREE.Color(opt.color || 'white') },
-        opacity: { value: defined(opt.opacity, 1) }
-      },
-      vertexShader: glslify(path.resolve(__dirname, '../shader/circular-blob.vert')),
-      fragmentShader: glslify(path.resolve(__dirname, '../shader/circular-blob.frag'))
-    });
-
+    const material = getRandomMaterial();
     const fillGeometry = new Polygon2D();
     this.fill = new THREE.Mesh(fillGeometry, material);
     this.fill.frustumCulled = false;
     this.add(this.fill);
 
-    // avoid z-fighting a bit...
-    this.position.z = randomOffset;
-    this.generate();
+    this.randomize();
   }
 
-  generate () {
+  randomize () {
     // get the raw path of this 'blob' shape
     const blobPath = RND.randomFloat(1) > 0.5 ? getCircularBlob() : getSquareBlob();
 
@@ -68,11 +37,30 @@ module.exports = class SimpleBlob extends THREE.Object3D {
 
     this.fill.geometry.setPoints(this.path);
     this.fill.geometry.setRandomAttributes();
+
+    this.randomOffset = RND.randomFloat(0, 1);
+    this.position.z = this.randomOffset;
+
+    this.fill.material = getRandomMaterial();
+    const map = this.app.assets.tiles[RND.randomInt(0, this.app.assets.tiles.length)];
+    this.fill.material.uniforms.map.value = map;
+    this.fill.material.uniforms.mapScale.value = RND.randomFloat(0.75, 1.0);
+    this.fill.material.uniforms.mapOffset.value.set(RND.randomFloat(-1, 1), RND.randomFloat(-1, 1));
+    this.fill.material.uniforms.mapMask.value = RND.randomBoolean();
+    this.fill.material.uniforms.mapResolution.value.set(map.image.width, map.image.height);
+    this.fill.material.uniforms.randomOffset.value = this.randomOffset;
+    this.fill.material.uniforms.color.value = this.color;
+    this.fill.material.uniforms.animate.value = 0;
     this.fill.material.uniforms.centroid.value.copy(centroid);
+  }
+
+  setAnimation (value) {
+    this.fill.material.uniforms.animate.value = value;
   }
 
   update (time, dt) {
     this.fill.material.uniforms.time.value = time;
+    this.fill.material.uniforms.resolution.value.set(this.app.width, this.app.height);
   }
 
   frame (frame, time) {

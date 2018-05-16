@@ -20,6 +20,7 @@
     "glsl-noise": "0.0.0",
     "glsl-pi": "^1.0.0",
     "glsl-random": "0.0.5",
+    "load-asset": "^1.2.0",
     "new-array": "^1.0.0",
     "query-string": "^6.1.0",
     "right-now": "^1.0.0",

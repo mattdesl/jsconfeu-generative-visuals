@@ -1,6 +1,6 @@
 const rightNow = require('right-now');
 const defined = require('defined');
-
+const loadAssets = require('./util/loadAssets');
 const TestScene = require('./scene/TestScene');
 
 const canvas = document.querySelector('#canvas');
@@ -38,10 +38,16 @@ function startApplication () {
 
   resize();
   window.addEventListener('resize', () => resize());
-  createScene(scene);
 
-  if (recordSettings.enabled) record();
-  else startLoop();
+  canvas.style.display = 'none';
+  loadAssets({ renderer }).then(assets => {
+    canvas.style.display = '';
+    app.assets = assets;
+    console.log('Loaded assets', app.assets);
+    createScene(scene);
+    if (recordSettings.enabled) record();
+    else startLoop();
+  });
 
   function resize (width, height, pixelRatio) {
     width = defined(width, window.innerWidth);

@@ -1,0 +1,25 @@
+
+#pragma glslify: PI = require('glsl-pi');
+#pragma glslify: noise = require('glsl-noise/simplex/4d');
+
+vec2 motion (vec2 position, vec2 normal, float time, float randomOffset) {
+  vec2 ret = vec2(0.0);
+  float amplitudeScale = 1.5;
+
+  // high freq first
+  float frequency = mix(250.0, 4500.0, randomOffset);
+  float n = noise(vec4(position.xy * frequency, randomOffset, randomOffset + time));
+  float amplitude = mix(0.0075, 0.0075 * 2.0, randomOffset);
+  ret += normal * n * amplitude * amplitudeScale;
+
+  // now low freq
+  float timeScaled = mix(0.5, 1.0, randomOffset) * time;
+  frequency = mix(0.1, 2.0, randomOffset);
+  n = noise(vec4(position.xy * frequency, randomOffset, randomOffset + timeScaled));
+  amplitude = 0.025;
+  ret += normal * n * amplitude * amplitudeScale;
+
+  return ret;
+}
+
+#pragma glslify: export(motion);

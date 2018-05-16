@@ -16,7 +16,7 @@ module.exports = function getCircularBlob (opt = {}) {
   //   ctx.quadraticCurveTo(x, y, x, y + radius);
   // })(roundedRectShape, 0, 0, 50, 50, 20);
 
-  const size = 0.25;
+  const size = 1;
   const min = new THREE.Vector2(-1, -1).multiplyScalar(size);
   const max = new THREE.Vector2(1, 1).multiplyScalar(size);
   let path = [
