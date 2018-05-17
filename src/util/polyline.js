@@ -1,6 +1,6 @@
 const tmp = new THREE.Vector2(0, 0);
 
-module.exports.resampleLineBySpacing = function (points, spacing = 1, closed = false) {
+module.exports.resampleLineBySpacing = function (points, spacing = 1 , closed = false) {
   if (spacing <= 0) {
     throw new Error('Spacing must be positive and larger than 0');
   }
@@ -43,7 +43,7 @@ module.exports.getPolylinePerimeter = function (points, closed = false) {
   return perimeter;
 };
 
-module.exports.resampleLineByCount = function (points, count = 1, closed = false) {
+module.exports.resampleLineByCount = function (points, count = 1 , closed = false) {
   if (count <= 0) return [];
   const perimeter = module.exports.getPolylinePerimeter(points, closed);
   return module.exports.resampleLineBySpacing(points, perimeter / count, closed);
