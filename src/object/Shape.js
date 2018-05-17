@@ -90,7 +90,7 @@ module.exports = class Shape extends BaseObject {
       }
 
       // resample along the path so we can add high frequency noise to give it rough edges in vert shader
-      const finalCount = RND.randomInt(100, 400);
+      const finalCount = RND.randomInt(200, 600);
       const resampled = resampleLineByCount(points, finalCount, true);
       this.mesh.geometry.setPoints(resampled);
     }

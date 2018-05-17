@@ -1,18 +1,10 @@
 const load = require('load-asset');
 
-module.exports = function (opt = {}) {
+module.exports = function(opt = {}) {
   const renderer = opt.renderer;
 
   const textureResolution = 512; // 512 or 1024
-  const tileFiles = [
-    'bigdot',
-    'contours',
-    'funkygerms',
-    'leppard',
-    'littlesticks',
-    'smalldot',
-    'worms'
-  ].map(f => {
+  const tileFiles = ['bigdot', 'contours', 'funkygerms', 'leppard', 'littlesticks', 'smalldot', 'worms'].map(f => {
     return {
       url: `assets/image/tile/${f}_${textureResolution}_.png`,
       type: loadTextureType,
@@ -25,13 +17,20 @@ module.exports = function (opt = {}) {
     };
   });
 
-  return load.any({
-    tiles: load.any(tileFiles)
-  }, ev => {
-    console.log(`[assets] Progress: ${ev.progress}`);
-  });
+  return load.any(
+    {
+      tiles: load.any(tileFiles)
+      // Can add other named assets here
+      // e.g.
+      // image: 'foo.png',
+      // texture: { url: 'blah.png', type: loadTextureType }
+    },
+    ev => {
+      console.log(`[assets] Progress: ${ev.progress}`);
+    }
+  );
 
-  function loadTextureType (ev) {
+  function loadTextureType(ev) {
     return load({ ...ev, type: 'image' }).then(image => {
       const texture = new THREE.Texture(image);
       Object.assign(texture, ev.settings || {});
