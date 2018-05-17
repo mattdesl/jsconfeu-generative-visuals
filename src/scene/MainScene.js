@@ -12,7 +12,8 @@ const shapeTypes = [
   // { weight: 5, value: 'circle' },
   { weight: 10, value: 'square' },
   { weight: 40, value: 'svg-heart' },
-  { weight: 40, value: 'svg-feather' }
+  { weight: 40, value: 'svg-feather' },
+  { weight: 10, value: 'svg-lightning' }
 ];
 
 // Other types:

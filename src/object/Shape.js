@@ -48,6 +48,7 @@ module.exports = class Shape extends BaseObject {
     else if (shapeType === 'circle-blob') points = getBlob();
     else if (shapeType === 'svg-heart') points = getSVGShape('heart');
     else if (shapeType === 'svg-feather') points = getSVGShape('feather');
+    else if (shapeType === 'svg-lightning') points = getSVGShape('lightning');
     else points = getBlob();
 
     // If we should 'round' the points with splines
