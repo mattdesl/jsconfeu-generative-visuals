@@ -26,6 +26,7 @@
     "right-now": "^1.0.0",
     "seed-random": "^2.2.0",
     "simplex-noise": "^2.4.0",
+    "svg-mesh-3d": "^1.1.0",
     "three": "^0.92.0",
     "three-buffer-vertex-data": "^1.1.0",
     "unlerp": "^1.0.1",

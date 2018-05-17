@@ -10,7 +10,9 @@ const shapeTypes = [
   { weight: 100, value: 'rectangle-blob' },
   { weight: 30, value: 'triangle' },
   // { weight: 5, value: 'circle' },
-  { weight: 10, value: 'square' }
+  { weight: 10, value: 'square' },
+  { weight: 40, value: 'svg-heart' },
+  { weight: 40, value: 'svg-feather' }
 ];
 
 // Other types:

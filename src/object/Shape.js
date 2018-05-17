@@ -7,6 +7,7 @@ const RND = require('../util/random');
 const getPolygon = require('../geometry/getPolygon');
 const getRectangle = require('../geometry/getRectangle');
 const getBlob = require('../geometry/getBlob');
+const getSVGShape = require('../geometry/getSVGShape');
 
 const getShapeMaterial = require('../material/getShapeMaterial');
 
@@ -45,6 +46,8 @@ module.exports = class Shape extends BaseObject {
     else if (shapeType === 'triangle') points = getPolygon({ sides: 3 });
     else if (shapeType === 'circle') points = getPolygon({ sides: 32, jitter: false });
     else if (shapeType === 'circle-blob') points = getBlob();
+    else if (shapeType === 'svg-heart') points = getSVGShape('heart');
+    else if (shapeType === 'svg-feather') points = getSVGShape('feather');
     else points = getBlob();
 
     // If we should 'round' the points with splines
@@ -67,6 +70,7 @@ module.exports = class Shape extends BaseObject {
 
     // resample along the path so we can add high frequency noise to give it rough edges in vert shader
     const finalCount = RND.randomInt(100, 400);
+
     const resampled = resampleLineByCount(points, finalCount, true);
 
     // generate the new (triangulated) geometry data
