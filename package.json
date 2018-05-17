@@ -42,6 +42,7 @@
   },
   "scripts": {
     "test": "node test.js",
+    "prepublish": "npm run dist",
     "deploy": "npm run build && npm run deploy:upload",
     "deploy:upload": "surge -p ./public -d paint-blobs.surge.sh",
     "build-all": "npm run build && npm run build:lib",
