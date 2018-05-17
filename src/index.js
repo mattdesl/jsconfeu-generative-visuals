@@ -1,9 +1,10 @@
 global.THREE = require('three');
 
-// The API
+// The API, exported as a library
 const createArtwork = require('./createArtwork');
 module.exports = createArtwork;
 
+// If we are running this module directly, i.e. as a test
 if (!module.parent) {
   const canvas = document.querySelector('#canvas');
 
@@ -26,14 +27,23 @@ if (!module.parent) {
     // Now that everything is loaded, we can start() and stop() the animation
     artwork.start();
 
-    // You can use start()/stop()/isRunning() in your app to switch states
+    // You should not have these events in your redux/react app, but they
+    // show how to use the API a bit more
     window.addEventListener('keydown', ev => {
       if (ev.keyCode === 32) { // space
         ev.preventDefault();
+        // Toggle play/pause
         if (artwork.isRunning()) artwork.stop();
         else artwork.start();
       } else if (ev.keyCode === 82) { // 'r'
+        ev.preventDefault();
+        // Clear the canas and add new shapes back in with
+        // a new random seed
         artwork.reset();
+      } else if (ev.keyCode === 67) { // 'c'
+        ev.preventDefault();
+        // Clear the canvas (does not stop render loop!)
+        artwork.clear();
       }
     });
   });

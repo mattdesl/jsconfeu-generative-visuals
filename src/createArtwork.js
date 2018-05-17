@@ -5,9 +5,9 @@ const MainScene = require('./scene/MainScene');
 const anime = require('animejs');
 const RND = require('./util/random');
 
-module.exports = createCanvas;
+module.exports = createArtwork;
 
-function createCanvas (canvas, params = {}) {
+function createArtwork (canvas, params = {}) {
   // I've been designing my code to this aspect ratio
   // Since it's assumed it will be the one we use
   const designAspect = 7680 / 1080;
@@ -77,6 +77,7 @@ function createCanvas (canvas, params = {}) {
       }
       start();
     },
+    clear,
     reset,
     stop,
     hide () {
@@ -117,16 +118,19 @@ function createCanvas (canvas, params = {}) {
     draw();
   }
 
-  function reset () {
-    // stop all animations
+  function clear () {
+    // stop all animations, clear shapes
     stoppedAnimations.length = 0;
     anime.running.forEach(a => a.pause());
     anime.running.length = 0;
+    if (main) main.clear();
+  }
+
+  function reset () {
+    // clear all animations and shapes and re-run loop
+    clear();
     resetRandomSeed();
-    if (main) {
-      main.clear();
-      main.start();
-    }
+    if (main) main.start();
   }
 
   function resetRandomSeed () {
