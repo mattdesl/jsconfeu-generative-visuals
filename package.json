@@ -2,7 +2,7 @@
   "name": "jsconf-eu-prototype",
   "version": "1.0.0",
   "description": "",
-  "main": "./dist/build.min.js",
+  "main": "./dist/build.js",
   "license": "MIT",
   "author": {
     "name": "Matt DesLauriers",
@@ -48,7 +48,7 @@
     "build-all": "npm run build && npm run build:lib",
     "build": "browserify ./src/index.js -t glslify | uglifyjs -cm > public/bundle.js",
     "dist": "npm run dist:bundle && npm run dist:min",
-    "dist:bundle": "mkdir -p dist/ && browserify ./src/index.js -t glslify --standalone artwork > dist/build.js",
+    "dist:bundle": "mkdir -p dist/ && browserify ./src/createArtwork.js -t glslify --standalone artwork > dist/build.js",
     "dist:min": "uglifyjs ./dist/build.js -mc > dist/build.min.js",
     "start": "budo ./src/index.js:bundle.js --dir public/ --live -- -t glslify"
   },

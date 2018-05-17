@@ -1,5 +1,3 @@
-global.THREE = require('three');
-
 // The API, exported as a library
 const createArtwork = require('./createArtwork');
 module.exports = createArtwork;

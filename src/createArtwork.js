@@ -1,3 +1,5 @@
+global.THREE = require('three');
+
 const rightNow = require('right-now');
 const defined = require('defined');
 const loadAssets = require('./util/loadAssets');
