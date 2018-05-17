@@ -1,4 +1,3 @@
-global.THREE = require('three');
 const query = require('./util/query');
 
 // The API, exported as a library
