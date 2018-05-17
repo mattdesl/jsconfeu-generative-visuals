@@ -11,7 +11,7 @@ module.exports = function (opt = {}) {
     defines: Object.assign({}, opt.defines),
     vertexShader,
     fragmentShader,
-    side: defined(opt.side, THREE.FrontSide),
+    side: THREE.DoubleSide,
     transparent: opt.transparent !== false,
     depthTest: Boolean(opt.depthTest),
     depthWrite: Boolean(opt.depthWrite),

@@ -23,8 +23,13 @@ module.exports = class Shape extends BaseObject {
   constructor(app) {
     super(app);
 
+    // Debugging with wireframe material to see mesh structure
+    const debugMaterial = false;
+
     const geometry = new Polygon2D();
-    const material = getShapeMaterial();
+    const material = debugMaterial
+      ? new THREE.MeshBasicMaterial({ color: 'black', wireframe: true, side: THREE.DoubleSide })
+      : getShapeMaterial();
 
     this.mesh = new THREE.Mesh(geometry, material);
     this.mesh.frustumCulled = false;
@@ -42,71 +47,85 @@ module.exports = class Shape extends BaseObject {
 
     // get a new list of points
     let points;
+    let svg;
     if (shapeType === 'polygon') points = getPolygon();
     else if (shapeType === 'square') points = getPolygon({ sides: 4 });
     else if (shapeType === 'rectangle-blob') points = getRectangle();
     else if (shapeType === 'triangle') points = getPolygon({ sides: 3 });
     else if (shapeType === 'circle') points = getPolygon({ sides: 32, jitter: false });
     else if (shapeType === 'circle-blob') points = getBlob();
-    else if (shapeType === 'svg-heart') points = getSVGShape('heart');
-    else if (shapeType === 'svg-feather') points = getSVGShape('feather');
-    else if (shapeType === 'svg-lightning') points = getSVGShape('lightning');
+    else if (shapeType === 'svg-heart') svg = getSVGShape('heart');
+    else if (shapeType === 'svg-feather') svg = getSVGShape('feather');
+    else if (shapeType === 'svg-lightning') svg = getSVGShape('lightning');
     else points = getBlob();
 
-    // If we should 'round' the points with splines
-    const round = shapeType !== 'circle' && !/svg/i.test(shapeType);
-    if (round) {
-      const minTension = shapeType === 'rectangle-blob' ? 0 : 0.1;
-      const maxTension = shapeType === 'rectangle-blob' ? 1 : 0.25;
-      const roundTension = RND.randomBoolean() ? minTension : RND.randomFloat(minTension, maxTension);
-      const roundType = shapeType === 'circle-blob' ? 'chordal' : 'catmullrom';
-      const roundSegments = shapeType === 'circle-blob' ? 30 : 40;
-      const curve = new THREE.CatmullRomCurve3(points.map(p => new THREE.Vector3(p.x, p.y, 0)));
-      curve.closed = true;
-      curve.tension = roundTension;
-      curve.curveType = roundType;
-      points = curve
-        .getSpacedPoints(roundSegments)
-        .slice(0, roundSegments)
-        .map(p => new THREE.Vector2(p.x, p.y));
+    // SVG is already triangulated
+    if (!points && svg) {
+      points = svg.positions;
     }
 
     // get centroid of polygon
     const centroid = getCentroid(points);
 
-    // resample along the path so we can add high frequency noise to give it rough edges in vert shader
-    const finalCount = RND.randomInt(100, 400);
-
-    const resampled = resampleLineByCount(points, finalCount, true);
-
     // generate the new (triangulated) geometry data
-    this.mesh.geometry.setPoints(resampled);
+    if (svg) {
+      this.mesh.geometry.setComplex(svg.positions, svg.cells);
+    } else {
+      // If we should 'round' the points with splines
+      const round = shapeType !== 'circle';
+      if (round) {
+        const minTension = shapeType === 'rectangle-blob' ? 0 : 0.1;
+        const maxTension = shapeType === 'rectangle-blob' ? 1 : 0.25;
+        const roundTension = RND.randomBoolean() ? minTension : RND.randomFloat(minTension, maxTension);
+        const roundType = shapeType === 'circle-blob' ? 'chordal' : 'catmullrom';
+        const roundSegments = shapeType === 'circle-blob' ? 30 : 40;
+        const curve = new THREE.CatmullRomCurve3(points.map(p => new THREE.Vector3(p.x, p.y, 0)));
+        curve.closed = true;
+        curve.tension = roundTension;
+        curve.curveType = roundType;
+        points = curve
+          .getSpacedPoints(roundSegments)
+          .slice(0, roundSegments)
+          .map(p => new THREE.Vector2(p.x, p.y));
+      }
+
+      // resample along the path so we can add high frequency noise to give it rough edges in vert shader
+      const finalCount = RND.randomInt(100, 400);
+      const resampled = resampleLineByCount(points, finalCount, true);
+      this.mesh.geometry.setPoints(resampled);
+    }
 
     // get a new material with color etc
-    this.mesh.material.randomize({
-      ...opt,
-      centroid,
-      materialType,
-      tiles: this.app.assets.tiles
-    });
+    if (this.mesh.material.randomize) {
+      this.mesh.material.randomize({
+        ...opt,
+        centroid,
+        materialType,
+        tiles: this.app.assets.tiles
+      });
+    }
 
     this.rotationSpeed = opt.rotationSpeed || 0;
   }
 
   setAnimation(value) {
     // animate in / out state
-    this.mesh.material.uniforms.animate.value = value;
+    if (this.mesh.material.uniforms) {
+      this.mesh.material.uniforms.animate.value = value;
+    }
   }
 
   update(time, dt) {
     // animation values
     this.rotation.z += this.rotationSpeed;
-    this.mesh.material.uniforms.time.value = time;
-    this.mesh.material.uniforms.resolution.value.set(this.app.width, this.app.height);
+    if (this.mesh.material.uniforms) {
+      this.mesh.material.uniforms.time.value = time;
+      this.mesh.material.uniforms.resolution.value.set(this.app.width, this.app.height);
+    }
   }
 
   frame(frame, time) {
     // called on every 'tick', i.e. a fixed fps lower than 60, to give a jittery feeling
-    this.mesh.material.uniforms.frame.value = time;
+    if (this.mesh.material.uniforms) this.mesh.material.uniforms.frame.value = time;
   }
 };

@@ -7,11 +7,13 @@ module.exports = function (key) {
   const svgPath = SVG_SHAPES[key];
 
   // tweak these numbers to taste, for simplifcation and curve rounding
-  const complex = svgMesh3d(svgPath, { simplify: 0.025, scale: 2 });
-
-  const result = complex.positions.map(([x, y]) => {
-    return new THREE.Vector2(x, y);
-  });
+  const complex = svgMesh3d(svgPath, { simplify: 0.5, randomization: 0, scale: 2 });
+  const result = {
+    positions: complex.positions.map(([x, y]) => {
+      return new THREE.Vector2(x, y);
+    }),
+    cells: complex.cells
+  };
 
   cache[key] = result;
   return result;
