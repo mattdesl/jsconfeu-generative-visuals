@@ -12,13 +12,15 @@ const getSVGShape = require('../geometry/getSVGShape');
 const getShapeMaterial = require('../material/getShapeMaterial');
 
 const getCentroid = path => {
-  return path.reduce((sum, point) => {
-    return sum.add(point);
-  }, new THREE.Vector2()).divideScalar(path.length);
+  return path
+    .reduce((sum, point) => {
+      return sum.add(point);
+    }, new THREE.Vector2())
+    .divideScalar(path.length);
 };
 
 module.exports = class Shape extends BaseObject {
-  constructor (app) {
+  constructor(app) {
     super(app);
 
     const geometry = new Polygon2D();
@@ -34,7 +36,7 @@ module.exports = class Shape extends BaseObject {
     this.position.z = RND.randomFloat(0, 1);
   }
 
-  randomize (opt = {}) {
+  randomize(opt = {}) {
     const shapeType = opt.shapeType || 'blob';
     const materialType = opt.materialType || 'fill';
 
@@ -52,7 +54,7 @@ module.exports = class Shape extends BaseObject {
     else points = getBlob();
 
     // If we should 'round' the points with splines
-    const round = shapeType !== 'circle';
+    const round = shapeType !== 'circle' && !/svg/i.test(shapeType);
     if (round) {
       const minTension = shapeType === 'rectangle-blob' ? 0 : 0.1;
       const maxTension = shapeType === 'rectangle-blob' ? 1 : 0.25;
@@ -63,7 +65,10 @@ module.exports = class Shape extends BaseObject {
       curve.closed = true;
       curve.tension = roundTension;
       curve.curveType = roundType;
-      points = curve.getSpacedPoints(roundSegments).slice(0, roundSegments).map(p => new THREE.Vector2(p.x, p.y));
+      points = curve
+        .getSpacedPoints(roundSegments)
+        .slice(0, roundSegments)
+        .map(p => new THREE.Vector2(p.x, p.y));
     }
 
     // get centroid of polygon
@@ -88,19 +93,19 @@ module.exports = class Shape extends BaseObject {
     this.rotationSpeed = opt.rotationSpeed || 0;
   }
 
-  setAnimation (value) {
+  setAnimation(value) {
     // animate in / out state
     this.mesh.material.uniforms.animate.value = value;
   }
 
-  update (time, dt) {
+  update(time, dt) {
     // animation values
     this.rotation.z += this.rotationSpeed;
     this.mesh.material.uniforms.time.value = time;
     this.mesh.material.uniforms.resolution.value.set(this.app.width, this.app.height);
   }
 
-  frame (frame, time) {
+  frame(frame, time) {
     // called on every 'tick', i.e. a fixed fps lower than 60, to give a jittery feeling
     this.mesh.material.uniforms.frame.value = time;
   }
