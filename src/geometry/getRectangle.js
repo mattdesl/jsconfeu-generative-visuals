@@ -3,19 +3,6 @@ const RND = require('../util/random');
 const newArray = require('new-array');
 
 module.exports = function getCircularBlob (opt = {}) {
-  // var roundedRectShape = new THREE.Shape();
-  // (function roundedRect (ctx, x, y, width, height, radius) {
-  //   ctx.moveTo(x, y + radius);
-  //   ctx.lineTo(x, y + height - radius);
-  //   ctx.quadraticCurveTo(x, y + height, x + radius, y + height);
-  //   ctx.lineTo(x + width - radius, y + height);
-  //   ctx.quadraticCurveTo(x + width, y + height, x + width, y + height - radius);
-  //   ctx.lineTo(x + width, y + radius);
-  //   ctx.quadraticCurveTo(x + width, y, x + width - radius, y);
-  //   ctx.lineTo(x + radius, y);
-  //   ctx.quadraticCurveTo(x, y, x, y + radius);
-  // })(roundedRectShape, 0, 0, 50, 50, 20);
-
   const size = 1;
   const min = new THREE.Vector2(-1, -1).multiplyScalar(size);
   const max = new THREE.Vector2(1, 1).multiplyScalar(size);
@@ -52,13 +39,5 @@ module.exports = function getCircularBlob (opt = {}) {
     const rotationOffset = RND.randomFloat(1) > 0.5 ? 0 : RND.randomFloat(0.25, 0.5);
     p.rotateAround(center, rotation + RND.randomFloat(-1, 1) * rotationOffset);
   });
-
-  const points3D = path.map(position => new THREE.Vector3(position.x, position.y, 0));
-  const curve = new THREE.CatmullRomCurve3(points3D);
-  curve.closed = true;
-  curve.tension = RND.randomFloat(1) > 0.5 ? 0 : RND.randomFloat(0, 1);
-  curve.curveType = 'catmullrom';
-
-  const pointCount = 30;
-  return curve.getSpacedPoints(pointCount).slice(0, pointCount).map(p => new THREE.Vector2().copy(p));
+  return path;
 };

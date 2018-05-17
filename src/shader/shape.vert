@@ -17,8 +17,7 @@ void main () {
   vec2 normal = normalize(position.xy);
   vec2 pos = position.xy + motion(position.xy, normal, time, randomOffset);
 
-  // vec2 target = centroid + direction;
-  // vec2 dirToTarget = ret - target;
+  // Scaling effect: this needs to be re-considered into something more interesting
   pos = mix(centroid, pos, animate);
 
   vec4 modelViewPos = modelViewMatrix * vec4(pos.xy, 0.0, 1.0);

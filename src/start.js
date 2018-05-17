@@ -1,7 +1,7 @@
 const rightNow = require('right-now');
 const defined = require('defined');
 const loadAssets = require('./util/loadAssets');
-const TestScene = require('./scene/TestScene');
+const MainScene = require('./scene/MainScene');
 
 const canvas = document.querySelector('#canvas');
 
@@ -158,7 +158,7 @@ function startApplication () {
   }
 
   function createScene (scene) {
-    scene.add(new TestScene(app));
+    scene.add(new MainScene(app));
   }
 }
 

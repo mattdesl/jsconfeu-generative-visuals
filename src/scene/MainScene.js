@@ -3,8 +3,30 @@ const clamp = require('clamp');
 const newArray = require('new-array');
 const anime = require('animejs');
 
-const SimpleBlob = require('../object/SimpleBlob');
-const Circle = require('../object/Circle');
+const Shape = require('../object/Shape');
+
+const shapeTypes = [
+  { weight: 100, value: 'circle-blob' },
+  { weight: 50, value: 'rectangle-blob' },
+  { weight: 25, value: 'triangle' },
+  // { weight: 5, value: 'circle' },
+  { weight: 5, value: 'square' }
+];
+
+// 'circle', 'square', 'triangle', 'squiggle', 'ring',
+// 'eye', 'feather', 'lightning', 'heart'
+
+const materialTypes = [
+  { weight: 100, value: 'fill' },
+  { weight: 50, value: 'texture-pattern' },
+  // { weight: 50, value: 'shader-pattern' }
+  // { weight: 25, value: 'fill-texture-pattern' }
+];
+
+// const effects = {
+//   dropShadow: true, // only works with certain geom types?
+//   sharpEdges: false // rounded edges or not for things like triangle/etc
+// };
 
 module.exports = class TestScene extends THREE.Object3D {
   constructor (app) {
@@ -18,13 +40,10 @@ module.exports = class TestScene extends THREE.Object3D {
       '#FEC3BE',
       '#DDE4F0',
       '#7A899C'
-    ].map(c => new THREE.Color(c));
+    ];
 
     const pool = newArray(150).map(() => {
-      const mesh = new SimpleBlob(app);
-      // const mesh = RND.randomBoolean()
-      //   ? new Circle(app)
-      //   : new SimpleBlob(app);
+      const mesh = new Shape(app);
       mesh.visible = false;
       this.add(mesh);
       return mesh;
@@ -51,6 +70,18 @@ module.exports = class TestScene extends THREE.Object3D {
       return vec;
     };
 
+    const getColor = colorStyle => {
+      const color = new THREE.Color().set(colorStyle);
+      const hOff = RND.randomFloat(-1, 1) * (2 / 360);
+      const sOff = RND.randomFloat(-1, 1) * 0.01;
+      const lOff = RND.randomFloat(-1, 1) * 0.025;
+      color.offsetHSL(hOff, sOff, lOff);
+      color.r = clamp(color.r, 0, 1);
+      color.g = clamp(color.g, 0, 1);
+      color.b = clamp(color.b, 0, 1);
+      return color;
+    };
+
     const findAvailableObject = () => {
       return RND.shuffle(pool).find(p => !p.active);
     };
@@ -67,24 +98,20 @@ module.exports = class TestScene extends THREE.Object3D {
       // But initially hidden until we animate in
       object.visible = false;
 
-      // Randomize the object and its materials
-      object.randomize();
-
       // randomize color a bit
       const palette = colors[RND.randomInt(colors.length)];
-      const color = object.getColor();
-      color.copy(palette);
-      const hOff = RND.randomFloat(-1, 1) * (2 / 360);
-      const sOff = RND.randomFloat(-1, 1) * 0.01;
-      const lOff = RND.randomFloat(-1, 1) * 0.025;
-      color.offsetHSL(hOff, sOff, lOff);
-      color.r = clamp(color.r, 0, 1);
-      color.g = clamp(color.g, 0, 1);
-      color.b = clamp(color.b, 0, 1);
+      const color = getColor(palette);
+      const altPalette = RND.shuffle(colors).find(c => c !== palette);
+      const altColor = getColor(altPalette);
+
+      // Randomize the object and its materials
+      const shapeType = RND.weighted(shapeTypes);
+      const materialType = RND.weighted(materialTypes);
+      object.randomize({ color, altColor, shapeType, materialType });
 
       // randomize position and scale
       const p = getRandomPosition();
-      const scale = RND.randomFloat(0.5, 4) * (1 / 3);
+      const scale = RND.randomFloat(0.25, 4) * (1 / 3);
       object.scale.setScalar(scale);
       object.position.set(p.x, p.y, 0);
 

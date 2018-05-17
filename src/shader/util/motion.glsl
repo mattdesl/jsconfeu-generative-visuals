@@ -4,7 +4,7 @@
 
 vec2 motion (vec2 position, vec2 normal, float time, float randomOffset) {
   vec2 ret = vec2(0.0);
-  float amplitudeScale = 1.5;
+  float amplitudeScale = 2.0;
 
   // high freq first
   float frequency = mix(250.0, 4500.0, randomOffset);

@@ -141,6 +141,36 @@ class Rand {
     out[3] = w;
     return out;
   }
+
+  weighted (set) {
+    if (set.length === 0) return null;
+    return set[this.weightedIndex(set)].value;
+  }
+
+  weightedIndex (set) {
+    if (set.length === 0) return -1;
+    return this.weightedRandom(set.map(s => s.weight));
+  }
+
+  weightedRandom (weights) {
+    if (weights.length === 0) return -1;
+    let totalWeight = 0;
+
+    for (let i = 0; i < weights.length; i++) {
+      totalWeight += weights[i];
+    }
+
+    if (totalWeight <= 0) throw new Error('Weights must sum to > 0');
+
+    let random = this.random() * totalWeight;
+    for (let i = 0; i < weights.length; i++) {
+      if (random < weights[i]) {
+        return i;
+      }
+      random -= weights[i];
+    }
+    return 0;
+  }
 }
 
 // const initialSeed = getRandomSeed();

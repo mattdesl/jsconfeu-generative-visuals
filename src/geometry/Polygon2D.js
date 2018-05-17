@@ -4,8 +4,6 @@ const RND = require('../util/random');
 const buffer = require('three-buffer-vertex-data');
 const unlerp = require('unlerp');
 
-const defaultRandomFunc = (point, index, list) => RND.randomFloat(0, 1);
-
 // Given a set of 2D or 3D vectors, will triangulate them as a closed polygon
 // This is 'sorta' fast, but probably better to do per-frame motion in vertex shader,
 // and have occasional re-triangulation as new shapes are about to animate in.
@@ -16,18 +14,6 @@ module.exports = class Polygon extends THREE.BufferGeometry {
     this.points = null;
     if (points) this.setPoints(points);
   }
-
-  setRandomAttributes (fn) {
-    if (this.points == null) throw new Error('must call setPoints prior to this');
-
-    fn = fn || defaultRandomFunc;
-
-    const randoms = this.points.map((p, i, list) => {
-      return fn(p, i, list);
-    });
-    buffer.attr(this, 'random', randoms, 1);
-  }
-
   setPoints (points) {
     this.points = points;
 
@@ -46,6 +32,10 @@ module.exports = class Polygon extends THREE.BufferGeometry {
         height === 0 ? 0 : unlerp(box.min.y, box.max.y, p.y)
       ];
     });
+
+    const randoms = this.points.map((p, i, list) => RND.randomFloat(0, 1));
+
+    buffer.attr(this, 'random', randoms, 1);
     buffer.attr(this, 'position', array, 2);
     buffer.attr(this, 'uv', uvs, 2);
     buffer.index(this, indices);
