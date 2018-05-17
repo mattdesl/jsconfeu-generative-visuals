@@ -158,13 +158,6 @@ module.exports = class TestScene extends THREE.Object3D {
         delay: startDelay,
         duration: 5000
       });
-      // anime({
-      //   targets: object.rotation,
-      //   z: newAngle,
-      //   easing: 'easeOutQuad',
-      //   delay: startDelay,
-      //   duration: 10000 * durationMod
-      // });
       anime({
         targets: object.position,
         x: other.x,
