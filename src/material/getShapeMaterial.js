@@ -47,7 +47,7 @@ module.exports = function (opt = {}) {
 
     const map = opt.tiles[RND.randomInt(0, opt.tiles.length)];
     this.uniforms.map.value = map;
-    this.uniforms.mapScale.value = RND.randomFloat(0.75, 1.25);
+    this.uniforms.mapScale.value = RND.randomFloat(0.75, 1.0);
     this.uniforms.mapOffset.value.set(RND.randomFloat(-1, 1), RND.randomFloat(-1, 1));
     this.uniforms.mapMask.value = RND.randomBoolean();
     this.uniforms.mapResolution.value.set(map.image.width, map.image.height);

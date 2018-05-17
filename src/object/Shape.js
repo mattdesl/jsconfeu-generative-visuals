@@ -27,6 +27,8 @@ module.exports = class Shape extends BaseObject {
     this.mesh.frustumCulled = false;
     this.add(this.mesh);
 
+    this.rotationSpeed = 0;
+
     // avoid z-fighting a bit if possible?
     this.position.z = RND.randomFloat(0, 1);
   }
@@ -77,6 +79,8 @@ module.exports = class Shape extends BaseObject {
       materialType,
       tiles: this.app.assets.tiles
     });
+
+    this.rotationSpeed = opt.rotationSpeed || 0;
   }
 
   setAnimation (value) {
@@ -86,6 +90,7 @@ module.exports = class Shape extends BaseObject {
 
   update (time, dt) {
     // animation values
+    this.rotation.z += this.rotationSpeed;
     this.mesh.material.uniforms.time.value = time;
     this.mesh.material.uniforms.resolution.value.set(this.app.width, this.app.height);
   }

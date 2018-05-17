@@ -1,13 +1,25 @@
 const rightNow = require('right-now');
 const defined = require('defined');
 const loadAssets = require('./util/loadAssets');
+const query = require('./util/query');
 const MainScene = require('./scene/MainScene');
 
 const canvas = document.querySelector('#canvas');
 
 function startApplication () {
-  const targetAspect = 7680 / 1080;
-  const useTargetAspect = true;
+  // I've been designing my code to this aspect ratio
+  // Since it's assumed it will be the one we use
+  const designAspect = 7680 / 1080;
+
+  // But I've also been testing some other target ratios
+  // in case the actual display is not what we have above for some reason
+  // const targetAspect = designAspect;
+  const targetAspect = 24 / 6;
+  // const targetAspect = 366 / 89;
+  // const targetAspect = 1416 / 334;
+
+  // You can also test full screen, it will give a different look...
+  const useTargetAspect = !query.fullscreen;
 
   const renderer = new THREE.WebGLRenderer({ antialias: true, canvas });
   renderer.setClearColor('#FBF9F3', 1);
@@ -71,6 +83,8 @@ function startApplication () {
     // camera.bottom = height;
     camera.scale.x = aspect;
     camera.scale.y = 1;
+
+    app.targetScale = aspect / designAspect;
     app.unitScale.x = aspect;
 
     // if (width > height) {

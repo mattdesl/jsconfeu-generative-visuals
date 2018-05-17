@@ -7,13 +7,14 @@ const Shape = require('../object/Shape');
 
 const shapeTypes = [
   { weight: 100, value: 'circle-blob' },
-  { weight: 50, value: 'rectangle-blob' },
-  { weight: 25, value: 'triangle' },
+  { weight: 100, value: 'rectangle-blob' },
+  { weight: 30, value: 'triangle' },
   // { weight: 5, value: 'circle' },
-  { weight: 5, value: 'square' }
+  { weight: 10, value: 'square' }
 ];
 
-// 'circle', 'square', 'triangle', 'squiggle', 'ring',
+// Other types:
+// 'squiggle', 'ring',
 // 'eye', 'feather', 'lightning', 'heart'
 
 const materialTypes = [
@@ -22,6 +23,13 @@ const materialTypes = [
   // { weight: 50, value: 'shader-pattern' }
   // { weight: 25, value: 'fill-texture-pattern' }
 ];
+
+// const scales = [
+//   { weight: 50, value: () => RND.randomFloat(2.5, 4) },
+//   { weight: 100, value: () => RND.randomFloat(1.5, 2.5) },
+//   { weight: 50, value: () => RND.randomFloat(0.75, 1.5) },
+//   { weight: 25, value: () => RND.randomFloat(0.5, 0.75) }
+// ];
 
 // const effects = {
 //   dropShadow: true, // only works with certain geom types?
@@ -49,7 +57,7 @@ module.exports = class TestScene extends THREE.Object3D {
       return mesh;
     });
 
-    const getRandomPosition = () => {
+    const getRandomPosition = (scale) => {
       const edges = [
         [ new THREE.Vector2(-1, -1), new THREE.Vector2(1, -1) ],
         [ new THREE.Vector2(1, -1), new THREE.Vector2(1, 1) ],
@@ -61,11 +69,11 @@ module.exports = class TestScene extends THREE.Object3D {
       const edge = edges[edgeIndex];
       // const t = RND.randomFloat(0, 1);
       const t = isTopOrBottom
-        ? (RND.randomBoolean() ? RND.randomFloat(0.0, 0.45) : RND.randomFloat(0.55, 1))
+        ? (RND.randomBoolean() ? RND.randomFloat(0.0, 0.35) : RND.randomFloat(0.65, 1))
         : RND.randomFloat(0, 1);
       const vec = edge[0].clone().lerp(edge[1], t);
       vec.x *= RND.randomFloat(1.0, 1.2);
-      vec.y *= RND.randomFloat(1.0, 2);
+      vec.y *= RND.randomFloat(1.0, 1.25);
       vec.multiply(app.unitScale);
       return vec;
     };
@@ -107,12 +115,15 @@ module.exports = class TestScene extends THREE.Object3D {
       // Randomize the object and its materials
       const shapeType = RND.weighted(shapeTypes);
       const materialType = RND.weighted(materialTypes);
-      object.randomize({ color, altColor, shapeType, materialType });
+      const rotationSpeed = RND.randomSign() * RND.randomFloat(0.0005, 0.001);
+      object.randomize({ color, altColor, shapeType, materialType, rotationSpeed });
 
       // randomize position and scale
-      const p = getRandomPosition();
-      const scale = RND.randomFloat(0.25, 4) * (1 / 3);
-      object.scale.setScalar(scale);
+      const scale = RND.randomFloat(0.5, 4.0);
+      // const scale = RND.weighted(scales)();
+      object.scale.setScalar(scale * (1 / 3) * app.targetScale);
+
+      const p = getRandomPosition(scale);
       object.position.set(p.x, p.y, 0);
 
       // other position we will tween to
@@ -123,7 +134,7 @@ module.exports = class TestScene extends THREE.Object3D {
       // const other = new THREE.Vector2().copy(mesh.position);
       // const randomDirection = new THREE.Vector2().copy(other).normalize();
       const randomDirection = new THREE.Vector2().fromArray(RND.randomCircle([], 1));
-      const randomLength = RND.randomFloat(0.1, 5);
+      const randomLength = RND.randomFloat(0.25, 5);
       randomDirection.y /= app.unitScale.x;
       other.addScaledVector(randomDirection, randomLength);
 
@@ -135,8 +146,10 @@ module.exports = class TestScene extends THREE.Object3D {
       };
 
       object.rotation.z = RND.randomFloat(-1, 1) * Math.PI * 2;
-      const newAngle = object.rotation.z + RND.randomFloat(-1, 1) * Math.PI * 2 * 0.25;
+
+      // const newAngle = object.rotation.z + RND.randomFloat(-1, 1) * Math.PI * 2 * 0.25;
       const startDelay = RND.randomFloat(0, 15000);
+      const durationMod = 1 / app.targetScale;
       anime({
         targets: animation,
         value: 1,
@@ -145,13 +158,13 @@ module.exports = class TestScene extends THREE.Object3D {
         delay: startDelay,
         duration: 5000
       });
-      anime({
-        targets: object.rotation,
-        z: newAngle,
-        easing: 'easeOutQuad',
-        delay: startDelay,
-        duration: 10000
-      });
+      // anime({
+      //   targets: object.rotation,
+      //   z: newAngle,
+      //   easing: 'easeOutQuad',
+      //   delay: startDelay,
+      //   duration: 10000 * durationMod
+      // });
       anime({
         targets: object.position,
         x: other.x,
@@ -162,7 +175,7 @@ module.exports = class TestScene extends THREE.Object3D {
         },
         easing: 'easeOutQuad',
         delay: startDelay,
-        duration: RND.randomFloat(40000, 60000)
+        duration: RND.randomFloat(40000, 60000) * durationMod
       }).finished.then(() => {
         anime({
           targets: animation,
@@ -182,7 +195,7 @@ module.exports = class TestScene extends THREE.Object3D {
       });
     };
 
-    for (let i = 0; i < 40; i++) {
+    for (let i = 0; i < 60; i++) {
       next();
     }
   }

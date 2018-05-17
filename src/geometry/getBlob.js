@@ -3,7 +3,7 @@ const RND = require('../util/random');
 const newArray = require('new-array');
 
 module.exports = function getCircularBlob (opt = {}) {
-  const count = RND.randomInt(8, 15);
+  const count = RND.randomInt(8, 10);
   const radius = 1;
   // Get a random set of points within a radius
   const input = newArray(count).map(() => {
