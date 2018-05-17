@@ -1,58 +1,92 @@
 const RND = require('../util/random');
 const clamp = require('clamp');
-const normalize = require('normalize-path-scale');
+const normalizePath = require('normalize-path-scale');
+
+// const SVG_PATH =
+//   'M-328.741569,411.998494 C-290.138379,375.123283 -275.671314,349.223841 -244.323929,335.246246 C-203.825323,317.187131 -154.38685,330.163829 -131.77243,364.791889 C-113.565342,392.671404 -115.82167,425.307448 -117.633955,451.530204 C-118.012236,457.022502 -118.373491,462.206634 -118.5603,467.201779 C-119.305696,487.169741 -112.312492,506.711011 -103.886337,508.198374 C-95.7319056,509.63827 -83.1592006,494.884205 -77.509915,477.238595 C-75.6311063,471.374558 -73.9840376,465.101623 -72.2416758,458.461423 C-66.1571876,435.280533 -59.261909,409.011537 -38.9354359,388.657578 C-20.9522609,370.661391 4.8402015,362.308766 31.826752,365.739355 C58.8149093,369.167607 81.7956055,383.717607 94.8815029,405.662703 C111.620907,433.731957 110.019101,466.46552 107.357299,488.642955 C106.743829,493.776119 106.012166,498.91207 105.28119,504.051993 C103.051514,519.689272 100.941527,534.461409 102.665115,547.617785 C104.365082,560.649394 111.422054,572.057983 119.078148,574.162741 C130.303536,577.248582 145.828122,562.210365 152.755653,546.788464 C157.247209,536.777731 160.429414,525.443723 163.800588,513.447146 C168.476882,496.803469 173.308855,479.595346 182.337656,462.79902 C202.709442,424.926923 249.803374,397.343574 290.36817,418.861036 C323.021494,436.183817 336.807993,478.734209 325.488792,527.261463 C323.997307,533.666191 322.277483,539.960377 320.615294,546.041494 C315.470059,564.878494 310.607942,582.667436 314.626464,596.380428 C317.002067,604.48682 324.786917,611.585365 334.949224,614.909132 C345.108549,618.227292 355.502806,617.072026 362.06908,611.885969 C371.607022,604.358351 378.35472,589.918871 383.295415,566.451846 C384.211258,562.112159 385.047929,557.733442 385.887814,553.350053 C389.705763,533.434628 394.03265,510.860011 405.578462,490.165566 C428.271815,449.415383 467.640748,438.572472 494.571936,445.748029 C522.348345,453.146596 551.950717,483.641196 551.302723,533.111522 C551.049001,552.469059 546.66544,569.920229 542.427002,586.792466 C540.27862,595.350539 538.248955,603.432709 536.886019,611.311242 C534.207229,626.805939 534.739271,646.507735 544.271762,655.346428 C551.659609,662.196794 566.19629,663.217982 579.623293,657.832437 C595.586651,651.424387 609.737419,638.244328 625.261581,622.948175 C636.380336,611.993552 -348.818832,431.177046 -328.741569,411.998494 Z';
+
+const SVG_PATH =
+  'M114.511719,0.69140625 C132.400109,9.47913527 145.568078,17.850229 154.015625,25.8046875 C166.686945,37.7363752 172.812917,45.0168195 177.417969,59.9257813 C182.023021,74.834743 184.399733,80.3385729 177.417969,101.472656 C172.763459,115.562045 164.962678,125.326368 154.015625,130.765625 C128.559337,136.721818 107.697357,141.005672 91.4296875,143.617188 C67.0281825,147.53446 55.0483207,144.124125 33.7695312,157.632812 C12.4907418,171.1415 5.75975046,184.814874 2.9296875,199.800781 C0.0996245364,214.786688 -4.26852839,218.284579 19.03125,235.675781 C42.3310284,253.066984 37.9422432,245.844963 69.859375,249.757812 C101.776507,253.670662 112.114447,248.51889 133.898437,249.757812 C148.421098,250.583761 162.927609,252.622823 177.417969,255.875 C195.315341,273.154626 205.386956,287.080408 207.632812,297.652344 C211.001598,313.510248 204.190453,330.940827 195.007813,338.675781 C185.825172,346.410735 178.427927,345.288375 154.015625,352.023438 C129.603323,358.7585 122.733774,357.107939 105.021484,362.414063 C87.3091947,367.720186 84.6026576,364.90306 69.859375,377.234375 C55.1160924,389.56569 45.643748,400.455667 42.546875,414.667969 C40.482293,424.142836 42.8091159,437.414972 49.5273437,454.484375 C60.1994472,463.392917 78.697494,470.191094 105.021484,474.878906';
+
+function makePath(svgD) {
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  path.setAttributeNS(null, 'd', svgD);
+
+  return path;
+}
+
+const colors = ['#313F61', '#DF1378', '#0C2AD9', '#FEC3BE', '#DDE4F0', '#7A899C'];
+
+function getColor(colorStyle) {
+  const color = new THREE.Color().set(colorStyle);
+  const hOff = RND.randomFloat(-1, 1) * (2 / 360);
+  const sOff = RND.randomFloat(-1, 1) * 0.01;
+  const lOff = RND.randomFloat(-1, 1) * 0.025;
+  color.offsetHSL(hOff, sOff, lOff);
+  color.r = clamp(color.r, 0, 1);
+  color.g = clamp(color.g, 0, 1);
+  color.b = clamp(color.b, 0, 1);
+  return color;
+}
 
 module.exports = class ZigZagScene extends THREE.Object3D {
   constructor(app) {
     super();
-
     this.app = app;
 
-    const colors = ['#313F61', '#DF1378', '#0C2AD9', '#FEC3BE', '#DDE4F0', '#7A899C'];
+    const path = makePath(SVG_PATH);
+
+    const pathSampleCount = 1000;
+    const pathPoints = normalizePath(
+      Array.from({ length: pathSampleCount }).map((_, i) => {
+        const point = path.getPointAtLength(i / pathSampleCount * path.getTotalLength());
+        return [point.x, point.y];
+      })
+    );
+    this.pathPoints = pathPoints;
+
+    console.log(pathPoints);
 
     const palette = colors[RND.randomInt(colors.length)];
-
-    const getColor = colorStyle => {
-      const color = new THREE.Color().set(colorStyle);
-      const hOff = RND.randomFloat(-1, 1) * (2 / 360);
-      const sOff = RND.randomFloat(-1, 1) * 0.01;
-      const lOff = RND.randomFloat(-1, 1) * 0.025;
-      color.offsetHSL(hOff, sOff, lOff);
-      color.r = clamp(color.r, 0, 1);
-      color.g = clamp(color.g, 0, 1);
-      color.b = clamp(color.b, 0, 1);
-      return color;
-    };
-
     const color = getColor(palette);
 
-    // I've put circles on the zig-zag path in sketch, and copied their positions ¯\_(ツ)_/¯
-    const zigZagPoints = normalize([
-      [113.5, 952.5],
-      [264.5, 809.5],
-      [78.5, 711.5],
-      [257.5, 568.5],
-      [47.5, 458.5],
-      [227.5, 331.5],
-      [8.5, 224.5],
-      [199.5, 134.5],
-      [135.5, 8.5]
-    ]);
+    this.points = pathPoints.slice(0);
+    this.zigZagIdx = 0;
+    const zigZagPoints = this.getZigZagPoints(this.zigZagIdx);
 
+    // TODO: switch to something else? extrude-polyline?
     const curve = new THREE.CatmullRomCurve3(zigZagPoints.map(([x, y]) => new THREE.Vector3(x, y, 0)));
-
     curve.tension = 0.8;
     curve.curveType = 'catmullrom';
-
     const geometry = new THREE.TubeGeometry(curve, 1024, 0.05, 4, false);
     const material = new THREE.MeshBasicMaterial({ color });
-
     this.mesh = new THREE.Mesh(geometry, material);
 
-    this.mesh.position.set(0, -1, 0);
+    this.mesh.position.set(0, -1.5, 0);
+    this.mesh.scale.set(0.5, 0.5, 0.5);
 
     this.add(this.mesh);
   }
 
-  update() {}
+  getZigZagPoints(idx) {
+    const zigZagPoints = this.pathPoints.map((_, i) => {
+      const finalIdx = (i + idx) % this.pathPoints.length;
+      const finalPoint = this.pathPoints[finalIdx];
+      const yOffset = Math.floor((i + idx) / this.pathPoints.length) * 2;
+
+      return [finalPoint[0], finalPoint[1] + yOffset];
+    });
+
+    return zigZagPoints;
+  }
+
+  update() {
+    this.zigZagIdx += 1;
+    const zigZagPoints = this.getZigZagPoints(this.zigZagIdx);
+    const curve = new THREE.CatmullRomCurve3(zigZagPoints.map(([x, y]) => new THREE.Vector3(x, y, 0)));
+    curve.tension = 0.8;
+    curve.curveType = 'chordal';
+    const geometry = new THREE.TubeGeometry(curve, 256, 0.05, 4, false);
+    this.mesh.geometry = geometry;
+  }
 };
