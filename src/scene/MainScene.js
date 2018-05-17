@@ -22,7 +22,7 @@ const shapeTypes = [
 
 const materialTypes = [
   { weight: 100, value: 'fill' },
-  { weight: 50, value: 'texture-pattern' },
+  { weight: 50, value: 'texture-pattern' }
 // { weight: 50, value: 'shader-pattern' }
 // { weight: 25, value: 'fill-texture-pattern' }
 ];
@@ -45,6 +45,29 @@ module.exports =
       super();
       this.app = app;
 
+      const maxCapacity = 150;
+      this.pool = newArray(maxCapacity).map(() => {
+        const mesh = new Shape(app);
+        mesh.visible = false;
+        this.add(mesh);
+        return mesh;
+      });
+
+      this.start();
+    }
+
+    clear () {
+      // reset pool to initial state
+      this.pool.forEach(p => {
+        p.visible = false;
+        p.active = false;
+      });
+    }
+
+    start () {
+      const app = this.app;
+      const pool = this.pool;
+
       const colors = [
         '#313F61',
         '#DF1378',
@@ -53,13 +76,6 @@ module.exports =
         '#DDE4F0',
         '#7A899C'
       ];
-
-      const pool = newArray(150).map(() => {
-        const mesh = new Shape(app);
-        mesh.visible = false;
-        this.add(mesh);
-        return mesh;
-      });
 
       const getRandomPosition = (scale) => {
         const edges = [
@@ -120,7 +136,7 @@ module.exports =
         const shapeType = RND.weighted(shapeTypes);
         const materialType = RND.weighted(materialTypes);
         const rotationSpeed = RND.randomSign() * RND.randomFloat(0.0005, 0.001);
-        object.randomize({ color, altColor, shapeType, materialType, rotationSpeed});
+        object.randomize({color, altColor, shapeType, materialType, rotationSpeed});
 
         // randomize position and scale
         const scale = RND.randomFloat(0.5, 4.0);
@@ -198,4 +214,4 @@ module.exports =
     }
 
     update (time, dt) {}
-};
+  };

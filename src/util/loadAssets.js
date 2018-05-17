@@ -1,6 +1,6 @@
 const load = require('load-asset');
 
-module.exports = function(opt = {}) {
+module.exports = function (opt = {}) {
   const renderer = opt.renderer;
 
   const textureResolution = 512; // 512 or 1024
@@ -26,11 +26,11 @@ module.exports = function(opt = {}) {
       // texture: { url: 'blah.png', type: loadTextureType }
     },
     ev => {
-      console.log(`[assets] Progress: ${ev.progress}`);
+      console.log(`[canvas] Loading Progress: ${ev.progress}`);
     }
   );
 
-  function loadTextureType(ev) {
+  function loadTextureType (ev) {
     return load({ ...ev, type: 'image' }).then(image => {
       const texture = new THREE.Texture(image);
       Object.assign(texture, ev.settings || {});

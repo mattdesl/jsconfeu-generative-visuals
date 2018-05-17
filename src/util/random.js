@@ -3,7 +3,7 @@ const seedRandom = require('seed-random');
 const SimplexNoise = require('simplex-noise');
 
 class Rand {
-  constructor (defaultSeed = null , opt = {}) {
+  constructor (defaultSeed = null, opt = {}) {
     this.defaultRandom = Math.random;
     this.quiet = opt.quiet;
     this.setSeed(defaultSeed);
@@ -178,8 +178,7 @@ const initialSeed = '42785'; // '42785'; // '86475' // 31144
 module.exports = new Rand(initialSeed);
 
 module.exports.createInstance = (seed, opt) => new Rand(seed, opt);
-
-Rand.getRandomSeed = getRandomSeed;
+module.exports.getRandomSeed = getRandomSeed;
 
 function getRandomSeed () {
   const seed = String(Math.floor(Math.random() * 100000));

@@ -2,7 +2,7 @@
   "name": "jsconf-eu-prototype",
   "version": "1.0.0",
   "description": "",
-  "main": "./src/index.js",
+  "main": "./dist/build.js",
   "license": "MIT",
   "author": {
     "name": "Matt DesLauriers",
@@ -44,9 +44,9 @@
     "test": "node test.js",
     "deploy": "npm run build && npm run deploy:upload",
     "deploy:upload": "surge -p ./public -d paint-blobs.surge.sh",
-    "build": "browserify . -t glslify | uglifyjs -cm > public/bundle.js",
-    "build:lib": "rm -rf dist && mkdir dist && browserify src/start-application.js --standalone startApplication -t glslify > dist/bundle.js",
-    "start": "budo .:bundle.js --dir public/ --live -- -t glslify"
+    "build": "browserify ./src/index.js -t glslify | uglifyjs -cm > public/bundle.js",
+    "build:lib": "browserify ./src/index.js -t glslify --standalone artwork > dist/build.js",
+    "start": "budo ./src/index.js:bundle.js --dir public/ --live -- -t glslify"
   },
   "glslify": {
     "transform": [

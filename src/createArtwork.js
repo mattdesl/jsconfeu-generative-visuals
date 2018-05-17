@@ -1,14 +1,13 @@
-global.THREE = require('three');
-
 const rightNow = require('right-now');
 const defined = require('defined');
 const loadAssets = require('./util/loadAssets');
-const query = require('./util/query');
 const MainScene = require('./scene/MainScene');
+const anime = require('animejs');
+const RND = require('./util/random');
 
-module.exports = startApplication;
+module.exports = createCanvas;
 
-function startApplication (canvas) {
+function createCanvas (canvas, params = {}) {
   // I've been designing my code to this aspect ratio
   // Since it's assumed it will be the one we use
   const designAspect = 7680 / 1080;
@@ -21,7 +20,7 @@ function startApplication (canvas) {
   // const targetAspect = 1416 / 334
 
   // You can also test full screen, it will give a different look...
-  const useTargetAspect = !query.fullscreen;
+  const useFullscreen = params.fullscreen !== false;
 
   const renderer = new THREE.WebGLRenderer({ antialias: true, canvas });
   renderer.setClearColor('#FBF9F3', 1);
@@ -38,29 +37,64 @@ function startApplication (canvas) {
 
   const tickFPS = 24;
 
+  let raf;
   let tickFrame = 0;
   let lastTickTime = 0;
   let elapsedTime = 0;
   let previousTime = rightNow();
+  let running = false;
+  let hasInit = false;
+  let hasResized = false;
+  let stoppedAnimations = [];
+  let main;
 
-  resize();
-  window.addEventListener('resize', () => resize());
+  draw();
 
-  canvas.style.display = 'none';
-  loadAssets({renderer}).then(assets => {
-    canvas.style.display = '';
-    app.assets = assets;
-    console.log('Loaded assets', app.assets);
-    createScene(scene);
-    startLoop();
-  });
+  const api = {
+    resize,
+    draw,
+    isRunning () {
+      return running;
+    },
+    load () {
+      return loadAssets({ renderer }).then(assets => {
+        app.assets = assets;
+        console.log('[canvas] Loaded assets');
+        return assets;
+      });
+    },
+    start () {
+      if (!app.assets) {
+        console.error('[canvas] Assets have not yet been loaded, must await load() before start()');
+      }
+      if (!hasResized) {
+        console.error('[canvas] You must call artwork.resize() at least once before artwork.start()');
+      }
+      if (!hasInit) {
+        createScene(scene);
+        draw();
+        hasInit = true;
+      }
+      start();
+    },
+    reset,
+    stop,
+    hide () {
+      canvas.style.visibility = 'hidden';
+    },
+    show () {
+      canvas.style.visibility = '';
+    }
+  };
+
+  return api;
 
   function resize (width, height, pixelRatio) {
     width = defined(width, window.innerWidth);
-    if (useTargetAspect) {
-      height = Math.floor(width / targetAspect);
-    } else {
+    if (useFullscreen) {
       height = defined(height, window.innerHeight);
+    } else {
+      height = Math.floor(width / targetAspect);
     }
     pixelRatio = defined(pixelRatio, window.devicePixelRatio);
 
@@ -79,19 +113,57 @@ function startApplication (canvas) {
     app.height = height;
     app.pixelRatio = pixelRatio;
     app.aspect = aspect;
+    hasResized = true;
+    draw();
   }
 
-  function startLoop () {
-    renderer.animate(animate);
+  function reset () {
+    // stop all animations
+    stoppedAnimations.length = 0;
+    anime.running.forEach(a => a.pause());
+    anime.running.length = 0;
+    resetRandomSeed();
+    if (main) {
+      main.clear();
+      main.start();
+    }
+  }
+
+  function resetRandomSeed () {
+    RND.setSeed(RND.getRandomSeed());
+  }
+
+  function start () {
+    if (running) return;
+    stoppedAnimations.forEach(anim => anim.play());
+    stoppedAnimations.length = 0;
+    running = true;
+    previousTime = rightNow();
+    raf = window.requestAnimationFrame(animate);
+  }
+
+  function stop () {
+    if (!running) return;
+    stoppedAnimations = anime.running.slice();
+    stoppedAnimations.forEach(r => r.pause());
+    anime.running.length = 0;
+    running = false;
+    window.cancelAnimationFrame(raf);
   }
 
   function animate () {
+    raf = window.requestAnimationFrame(animate);
+
     const now = rightNow();
     const deltaTime = (now - previousTime) / 1000;
     elapsedTime += deltaTime;
     previousTime = now;
 
     render(elapsedTime, deltaTime);
+  }
+
+  function draw () {
+    render(elapsedTime, 0);
   }
 
   function render (time, deltaTime) {
@@ -115,6 +187,7 @@ function startApplication (canvas) {
   }
 
   function createScene (scene) {
-    scene.add(new MainScene(app));
+    main = new MainScene(app);
+    scene.add(main);
   }
 }
