@@ -22,6 +22,7 @@
     "glsl-random": "0.0.5",
     "load-asset": "^1.2.0",
     "new-array": "^1.0.0",
+    "normalize-path-scale": "^2.0.0",
     "query-string": "^6.1.0",
     "right-now": "^1.0.0",
     "seed-random": "^2.2.0",

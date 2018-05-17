@@ -4,6 +4,7 @@ const loadAssets = require('./util/loadAssets');
 const MainScene = require('./scene/MainScene');
 const anime = require('animejs');
 const RND = require('./util/random');
+const ZigZagScene = require('./scene/ZigZagScene');
 
 module.exports = createArtwork;
 
@@ -47,6 +48,7 @@ function createArtwork (canvas, params = {}) {
   let hasResized = false;
   let stoppedAnimations = [];
   let main;
+  let zigZag;
 
   draw();
 
@@ -192,6 +194,8 @@ function createArtwork (canvas, params = {}) {
 
   function createScene (scene) {
     main = new MainScene(app);
+    zigZag = new ZigZagScene(app);
     scene.add(main);
+    scene.add(zigZag);
   }
 }
