@@ -15,10 +15,10 @@ function startApplication (canvas) {
 
   // But I've also been testing some other target ratios
   // in case the actual display is not what we have above for some reason
-  // const targetAspect = designAspect;
+  // const targetAspect = designAspect
   const targetAspect = 24 / 6;
-  // const targetAspect = 366 / 89;
-  // const targetAspect = 1416 / 334;
+  // const targetAspect = 366 / 89
+  // const targetAspect = 1416 / 334
 
   // You can also test full screen, it will give a different look...
   const useTargetAspect = !query.fullscreen;
@@ -43,24 +43,16 @@ function startApplication (canvas) {
   let elapsedTime = 0;
   let previousTime = rightNow();
 
-  const recordSettings = {
-    output: 'tmp',
-    fps: 24,
-    duration: 1,
-    enabled: false
-  };
-
   resize();
   window.addEventListener('resize', () => resize());
 
   canvas.style.display = 'none';
-  loadAssets({ renderer }).then(assets => {
+  loadAssets({renderer}).then(assets => {
     canvas.style.display = '';
     app.assets = assets;
     console.log('Loaded assets', app.assets);
     createScene(scene);
-    if (recordSettings.enabled) record();
-    else startLoop();
+    startLoop();
   });
 
   function resize (width, height, pixelRatio) {
@@ -76,26 +68,12 @@ function startApplication (canvas) {
     renderer.setSize(width, height);
 
     const aspect = width / height;
-    // camera.scale.x = 1;
-    // camera.scale.y = 1 / aspect;
-
-    // camera.left = 0;
-    // camera.top = 0;
-    // camera.right = width;
-    // camera.bottom = height;
     camera.scale.x = aspect;
     camera.scale.y = 1;
 
     app.targetScale = aspect / designAspect;
     app.unitScale.x = aspect;
 
-    // if (width > height) {
-    //   camera.scale.x = aspect;
-    //   camera.scale.y = 1;
-    // } else {
-    //   camera.scale.x = aspect;
-    //   camera.scale.y = 1;
-    // }
     camera.updateProjectionMatrix();
     app.width = width;
     app.height = height;
@@ -105,43 +83,6 @@ function startApplication (canvas) {
 
   function startLoop () {
     renderer.animate(animate);
-  }
-
-  function record () {
-    if (!window.TEXEL) {
-      throw new Error('Exporting is not yet supported by budo...');
-    }
-    const fps = recordSettings.fps;
-    const frameInterval = 1 / fps;
-    const duration = recordSettings.duration;
-    let deltaTime = 0;
-    let frame = 0;
-    let totalFrames = Math.floor(fps * duration);
-    const tick = () => {
-      resize(recordSettings.width, recordSettings.height, 1);
-      render(elapsedTime, deltaTime);
-
-      const dataURL = window.TEXEL.getCanvasDataURL(canvas, recordSettings);
-      resize();
-      render(elapsedTime, 0);
-      return window.TEXEL.saveDataURL(dataURL, Object.assign({}, recordSettings, {
-        frame,
-        totalFrames: Math.max(1000, totalFrames)
-      })).then(() => {
-        console.log(`Saved Frame ${frame}`);
-        frame++;
-        if (frame < totalFrames) {
-          elapsedTime += frameInterval;
-          deltaTime = frameInterval;
-          window.requestAnimationFrame(tick);
-        } else {
-          console.log('Finished recording');
-          elapsedTime = 0;
-          startLoop();
-        }
-      });
-    };
-    window.requestAnimationFrame(tick);
   }
 
   function animate () {
