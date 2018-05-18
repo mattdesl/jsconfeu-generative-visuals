@@ -48,6 +48,7 @@ module.exports = class Shape extends BaseObject {
     // get a new list of points
     let points;
     let svg;
+
     if (shapeType === 'polygon') points = getPolygon();
     else if (shapeType === 'square') points = getPolygon({ sides: 4 });
     else if (shapeType === 'rectangle-blob') points = getRectangle();

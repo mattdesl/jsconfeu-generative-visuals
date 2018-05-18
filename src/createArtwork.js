@@ -126,6 +126,7 @@ function createArtwork (canvas, params = {}) {
     anime.running.forEach(a => a.pause());
     anime.running.length = 0;
     if (main) main.clear();
+    if (zigZag) zigZag.clear();
   }
 
   function reset () {
@@ -133,6 +134,7 @@ function createArtwork (canvas, params = {}) {
     clear();
     resetRandomSeed();
     if (main) main.start();
+    if (zigZag) zigZag.start();
   }
 
   function resetRandomSeed () {
@@ -194,8 +196,9 @@ function createArtwork (canvas, params = {}) {
 
   function createScene (scene) {
     main = new MainScene(app);
-    zigZag = new ZigZagScene(app);
     scene.add(main);
+
+    zigZag = new ZigZagScene(app);
     scene.add(zigZag);
   }
 }
