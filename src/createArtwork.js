@@ -17,7 +17,7 @@ function createArtwork (canvas, params = {}) {
   // But I've also been testing some other target ratios
   // in case the actual display is not what we have above for some reason
   // const targetAspect = designAspect
-  const targetAspect = 24 / 6;
+  const targetAspect = designAspect;
   // const targetAspect = 366 / 89
   // const targetAspect = 1416 / 334
 
