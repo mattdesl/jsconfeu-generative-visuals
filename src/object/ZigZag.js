@@ -32,27 +32,32 @@ module.exports = class ZigZag extends BaseObject {
 
     this.speed = defined(opt.speed, 0.5);
     this.zigZagIdx = 0;
+    this.headPos = new THREE.Vector2();
+    this.tailPos = new THREE.Vector2();
 
     this.line = new MeshLine();
     this.line.setGeometry(this.getLineGeometry(this.zigZagIdx));
 
     const material = new MeshLineMaterial({
       resolution: new THREE.Vector2(app.width, app.height),
-      color: defined(opt.color, 0x000000),
-      lineWidth: defined(opt.width, 0.04)
+      color: defined(opt.color, { r: 0, g: 0, b: 0 }),
+      lineWidth: defined(opt.lineWidth, 0.04)
     });
 
     this.mesh = new THREE.Mesh(this.line.geometry, material);
-    this.mesh.position.set(0, 0, 0);
+    this.mesh.frustumCulled = false;
 
     this.add(this.mesh);
   }
 
   randomize(opt = {}) {
-    this.zigZagIdx = 0;
-    this.mesh.position.set(0, 0, 0);
+    this.headPos = new THREE.Vector2();
+    this.tailPos = new THREE.Vector2();
 
-    this.mesh.material.uniforms.color.value = defined(opt.color, 0x000000);
+    this.zigZagIdx = 0;
+    this.line.setGeometry(this.getLineGeometry(this.zigZagIdx));
+
+    this.mesh.material.uniforms.color.value = defined(opt.color, { r: 0, g: 0, b: 0 });
     this.mesh.material.uniforms.lineWidth.value = defined(opt.lineWidth, 0.04);
 
     this.mesh.material.uniforms.resolution.value.x = this.app.width;
@@ -64,8 +69,11 @@ module.exports = class ZigZag extends BaseObject {
 
     this.getZigZagPoints(idx).forEach(v => geometry.vertices.push(v));
 
-    this.headPos = geometry.vertices[0];
-    this.tailPos = geometry.vertices[geometry.vertices.length - 1];
+    this.headPos.x = geometry.vertices[0].x;
+    this.headPos.y = geometry.vertices[0].y;
+
+    this.tailPos.x = geometry.vertices[geometry.vertices.length - 1].x;
+    this.tailPos.y = geometry.vertices[geometry.vertices.length - 1].y;
 
     return geometry;
   }

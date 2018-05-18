@@ -18,12 +18,15 @@ module.exports = class ZigZagScene extends THREE.Object3D {
       const mesh = new ZigZag(app, {
         length: RND.randomInt(50, 200),
         speed: RND.randomFloat(0.3, 1.5)
-        // speed: 2
       });
+
       mesh.visible = false;
       this.add(mesh);
+
       return mesh;
     });
+
+    window.pool = this.pool;
 
     this.start();
   }
@@ -57,7 +60,7 @@ module.exports = class ZigZagScene extends THREE.Object3D {
       const t = RND.randomFloat(0, 1);
 
       const vec = edge[0].clone().lerp(edge[1], t);
-      vec.multiply(app.unitScale).multiplyScalar(1.2);
+      vec.multiply(app.unitScale).multiplyScalar(RND.randomFloat(1.1, 1.4));
 
       return vec;
     };
@@ -85,12 +88,12 @@ module.exports = class ZigZagScene extends THREE.Object3D {
 
     object.active = true;
     object.visible = true;
-    object.wasOutside = false;
+    object.wasVisible = false;
 
     const palette = colors[RND.randomInt(colors.length)];
     const color = getColor(palette);
 
-    const lineWidth = RND.randomFloat(0.02, 0.06);
+    const lineWidth = RND.randomFloat(0.04, 0.08);
 
     const scale = RND.randomFloat(0.2, 0.5);
     object.scale.setScalar(scale * app.targetScale);
@@ -99,7 +102,6 @@ module.exports = class ZigZagScene extends THREE.Object3D {
     object.position.set(position.x, position.y, 0);
 
     const target = [RND.randomFloat(-2, 2), RND.randomFloat(-1, 1)];
-
     const angle = Math.atan2(position.y - target[1], position.x - target[0]) + Math.PI / 2;
     object.rotation.z = angle;
 
@@ -112,28 +114,29 @@ module.exports = class ZigZagScene extends THREE.Object3D {
     this.pool.forEach(p => {
       const position2d = new THREE.Vector2(p.position.x, p.position.y);
 
-      const head = position2d
+      const head = p.headPos
         .clone()
-        .add(p.headPos)
-        .rotateAround(position2d, p.rotation.z)
-        .multiply(p.scale);
+        .multiplyScalar(p.scale.x)
+        .add(position2d)
+        .rotateAround(position2d, p.rotation.z);
 
-      const tail = position2d
+      const tail = p.tailPos
         .clone()
-        .add(p.tailPos)
-        .rotateAround(position2d, p.rotation.z)
-        .multiply(p.scale);
+        .multiplyScalar(p.scale.x)
+        .add(position2d)
+        .rotateAround(position2d, p.rotation.z);
 
       const isOutside = pointOutsideRect([head.x, head.y], view) && pointOutsideRect([tail.x, tail.y], view);
 
       if (isOutside) {
-        if (!p.wasOutside) {
-          p.wasOutside = true;
-        } else {
+        if (p.wasVisible) {
           p.visible = false;
           p.active = false;
+
           this.next();
         }
+      } else {
+        p.wasVisible = true;
       }
     });
   }
