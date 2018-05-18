@@ -30,6 +30,7 @@ module.exports = class ZigZag extends BaseObject {
     );
     this.pathPoints = pathPoints;
 
+    this.speed = defined(opt.speed, 0.5);
     this.zigZagIdx = 0;
 
     this.line = new MeshLine();
@@ -42,13 +43,17 @@ module.exports = class ZigZag extends BaseObject {
     });
 
     this.mesh = new THREE.Mesh(this.line.geometry, material);
+    this.mesh.position.set(0, 0, 0);
 
     this.add(this.mesh);
   }
 
   randomize(opt = {}) {
+    this.zigZagIdx = 0;
+    this.mesh.position.set(0, 0, 0);
+
     this.mesh.material.uniforms.color.value = defined(opt.color, 0x000000);
-    this.mesh.material.uniforms.lineWidth.value = defined(opt.width, 0.04);
+    this.mesh.material.uniforms.lineWidth.value = defined(opt.lineWidth, 0.04);
 
     this.mesh.material.uniforms.resolution.value.x = this.app.width;
     this.mesh.material.uniforms.resolution.value.y = this.app.height;
@@ -59,12 +64,15 @@ module.exports = class ZigZag extends BaseObject {
 
     this.getZigZagPoints(idx).forEach(v => geometry.vertices.push(v));
 
+    this.headPos = geometry.vertices[0];
+    this.tailPos = geometry.vertices[geometry.vertices.length - 1];
+
     return geometry;
   }
 
   getZigZagPoints(idx) {
     const zigZagPoints = this.pathPoints.map((_, i) => {
-      const finalIdx = (i + idx) % this.pathPoints.length;
+      const finalIdx = Math.floor(i + idx) % this.pathPoints.length;
       const finalPoint = this.pathPoints[finalIdx];
       const yOffset = Math.floor((i + idx) / this.pathPoints.length) * 2;
 
@@ -75,7 +83,7 @@ module.exports = class ZigZag extends BaseObject {
   }
 
   update() {
-    this.zigZagIdx += 1;
+    this.zigZagIdx += this.speed;
     this.line.setGeometry(this.getLineGeometry(this.zigZagIdx));
   }
 };
