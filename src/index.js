@@ -1,4 +1,5 @@
 global.THREE = require('three');
+const query = require('./util/query');
 
 // The API, exported as a library
 const createArtwork = require('./createArtwork');
@@ -7,12 +8,13 @@ module.exports = createArtwork;
 // If we are running this module directly, i.e. as a test
 if (!module.parent) {
   const canvas = document.querySelector('#canvas');
+  const isFullscreen = !!query.fullscreen;
 
   // Create the API. You should only create this once and re-use it.
   const artwork = createArtwork(canvas, {
     // In the staging link prototype, test with a fixed aspect ratio
     // In your redux/react app, set this to true to get full width/height
-    fullscreen: false
+    fullscreen: isFullscreen
   });
 
   // Some time before start(), we need to set the initial size
