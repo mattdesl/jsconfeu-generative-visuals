@@ -21,10 +21,10 @@ module.exports = class ZigZag extends BaseObject {
     this.app = app;
     const path = makePath(SVG_PATH);
 
-    const pathSampleCount = defined(opt.length, 200);
+    const pathSampleCount = defined(opt.length, 200); // TODO: length is segments
     const pathPoints = normalizePath(
       newArray(pathSampleCount).map((_, i) => {
-        const point = path.getPointAtLength(i / pathSampleCount * path.getTotalLength());
+        const point = path.getPointAtLength(i / pathSampleCount * path.getTotalLength()); // TODO: here is length, multiply `* k`
         return [point.x, point.y];
       })
     );
