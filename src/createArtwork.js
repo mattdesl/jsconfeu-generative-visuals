@@ -26,20 +26,44 @@ function createArtwork (canvas, params = {}) {
   const useFullscreen = params.fullscreen !== false;
 
   const renderer = new THREE.WebGLRenderer({ antialias: true, canvas });
-  renderer.setClearColor('#FBF9F3', 1);
 
   const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, -100, 100);
   const scene = new THREE.Scene();
+
+  const colorPalettes = {
+    dark: {
+      background: '#313F61',
+      colors: [
+        '#DF1378',
+        '#0C2AD9',
+        '#FEC3BE',
+        '#DDE4F0',
+        '#7A899C'
+      ]
+    },
+    light: {
+      background: '#FBF9F3',
+      colors: [
+        '#313F61',
+        '#DF1378',
+        '#0C2AD9',
+        '#FEC3BE',
+        '#DDE4F0',
+        '#7A899C'
+      ]
+    }
+  };
 
   const app = {
     camera,
     scene,
     canvas,
     sceneBounds: new THREE.Box2(),
-    unitScale: new THREE.Vector2(1, 1)
+    unitScale: new THREE.Vector2(1, 1),
+    colorPalette: colorPalettes.light
     // will contain some other properties for scenes to use, like width/height
   };
-
+  
   const tickFPS = 30;
 
   let raf;
@@ -53,6 +77,7 @@ function createArtwork (canvas, params = {}) {
   let stoppedAnimations = [];
   let main;
 
+  updatePalette();
   draw();
 
   const api = {
@@ -88,6 +113,12 @@ function createArtwork (canvas, params = {}) {
     randomize () {
       traverse('onTrigger', 'randomize');
     },
+    swapPalettes () {
+      const newPalette = app.colorPalette === colorPalettes.light ? colorPalettes.dark : colorPalettes.light;
+      app.colorPalette = newPalette;
+      updatePalette();
+      traverse('onTrigger', 'palette');
+    },
     hide () {
       canvas.style.visibility = 'hidden';
     },
@@ -97,6 +128,10 @@ function createArtwork (canvas, params = {}) {
   };
 
   return api;
+
+  function updatePalette () {
+    renderer.setClearColor(app.colorPalette.background, 1);
+  }
 
   function resize (width, height, pixelRatio) {
     width = defined(width, window.innerWidth);

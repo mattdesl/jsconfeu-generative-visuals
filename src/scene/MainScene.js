@@ -40,15 +40,6 @@ const materialTypes = [
 //   sharpEdges: false // rounded edges or not for things like triangle/etc
 // }
 
-const colors = [
-  '#313F61',
-  '#DF1378',
-  '#0C2AD9',
-  '#FEC3BE',
-  '#DDE4F0',
-  '#7A899C'
-];
-
 const getColor = colorStyle => {
   const color = new THREE.Color().set(colorStyle);
   const hOff = RND.randomFloat(-1, 1) * (2 / 360);
@@ -61,7 +52,7 @@ const getColor = colorStyle => {
   return color;
 };
 
-const getRandomMaterialProps = () => {
+const getRandomMaterialProps = ({ colors }) => {
   const palette = colors[RND.randomInt(colors.length)];
   const color = getColor(palette);
   const altPalette = RND.shuffle(colors).find(c => c !== palette);
@@ -152,7 +143,7 @@ module.exports = class TestScene extends THREE.Object3D {
       // randomize color a bit
       
       object.reset(); // reset time properties
-      object.randomize(getRandomMaterialProps()); // reset color/etc
+      object.randomize(getRandomMaterialProps({ colors: app.colorPalette.colors })); // reset color/etc
 
       // randomize position and scale
       const scale = RND.randomFloat(0.5, 4.0);
@@ -240,8 +231,15 @@ module.exports = class TestScene extends THREE.Object3D {
     if (event === 'randomize') {
       this.pool.forEach(shape => {
         if (shape.active) {
-          const { color, altColor, materialType, shapeType } = getRandomMaterialProps();
+          const { color, altColor, materialType, shapeType } = getRandomMaterialProps({ colors: this.app.colorPalette.colors });
           shape.randomize({ materialType, color, altColor, shapeType });
+        }
+      });
+    } else if (event === 'palette') {
+      this.pool.forEach(shape => {
+        if (shape.active) {
+          const { color, altColor } = getRandomMaterialProps({ colors: this.app.colorPalette.colors });
+          shape.randomize({ color, altColor });
         }
       });
     }

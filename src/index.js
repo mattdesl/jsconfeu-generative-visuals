@@ -41,7 +41,7 @@ artwork.load().then(() => {
       // Clear the canvas (does not stop render loop!)
       artwork.clear();
     } else if (key === 't') {
-      artwork.randomize();
+      artwork.swapPalettes();
     }
   });
 });
