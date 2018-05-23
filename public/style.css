@@ -1,4 +1,11 @@
+@font-face {
+  font-family: 'Domus';
+  src: url(assets/font/Domus-Regular.woff);
+  font-weight: 500;
+}
+
 html {
+  font-family: 'Domus', Helvetica, sans-serif;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -10,4 +17,27 @@ body {
 }
 canvas {
   display: block;
+}
+
+.canvas-text-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.canvas-text {
+  font-size: 16px;
+  text-align: center;
+  width: 25vw;
+  position: absolute;
+}
+
+.canvas-text p {
+  margin: 0;
+  line-height: 1.5;
 }

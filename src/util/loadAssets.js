@@ -3,8 +3,11 @@ const load = require('load-asset');
 module.exports = function (opt = {}) {
   const renderer = opt.renderer;
 
+  const baseSettings = {
+    
+  }
   const textureResolution = 512; // 512 or 1024
-  const tileFiles = ['bigdot', 'contours', 'funkygerms', 'leppard', 'littlesticks', 'smalldot', 'worms'].map(f => {
+  const tileFiles = ['bigdot', /*'contours',*/ 'funkygerms', 'leppard', 'littlesticks', 'smalldot', 'worms'].map(f => {
     return {
       url: `assets/image/tile/${f}_${textureResolution}_.png`,
       type: loadTextureType,
@@ -17,9 +20,23 @@ module.exports = function (opt = {}) {
     };
   });
 
+  const maskFiles = ['e'].map(f => {
+    return {
+      url: `assets/image/mask/${f}.png`,
+      type: loadTextureType,
+      settings: {
+        minFilter: THREE.LinearFilter,
+        wrapS: THREE.RepeatWrapping,
+        wrapT: THREE.RepeatWrapping,
+        generateMipmaps: false
+      }
+    };
+  });
+
   return load.any(
     {
-      tiles: load.any(tileFiles)
+      masks: load.any(maskFiles, err),
+      tiles: load.any(tileFiles, err)
       // Can add other named assets here
       // e.g.
       // image: 'foo.png',
@@ -29,6 +46,11 @@ module.exports = function (opt = {}) {
       console.log(`[canvas] Loading Progress: ${ev.progress}`);
     }
   );
+
+  function err (ev) {
+    if (ev.error) {
+    }
+  }
 
   function loadTextureType (ev) {
     return load({ ...ev, type: 'image' }).then(image => {

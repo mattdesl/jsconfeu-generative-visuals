@@ -45,8 +45,12 @@ module.exports = class Polygon extends THREE.BufferGeometry {
     this.updateUVs(points);
   }
 
+  getBounds2D () {
+    return this.boundingBox2;
+  }
+
   // Triangulate a polygon
-  setPoints(points) {
+  setPoints (points) {
     const array = flatten(points);
     const indices = earcut(array);
     buffer.attr(this, 'position', array, 2);

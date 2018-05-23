@@ -1,3 +1,5 @@
+global.THREE = require('three');
+
 const rightNow = require('right-now');
 const defined = require('defined');
 const loadAssets = require('./util/loadAssets');
@@ -5,6 +7,7 @@ const MainScene = require('./scene/MainScene');
 const anime = require('animejs');
 const RND = require('./util/random');
 const ZigZagScene = require('./scene/ZigZagScene');
+const tmpVec3 = new THREE.Vector3();
 
 module.exports = createArtwork;
 
@@ -16,7 +19,7 @@ function createArtwork (canvas, params = {}) {
   // But I've also been testing some other target ratios
   // in case the actual display is not what we have above for some reason
   // const targetAspect = designAspect
-  const targetAspect = 24 / 6;
+  const targetAspect = designAspect;
   // const targetAspect = 366 / 89
   // const targetAspect = 1416 / 334
 
@@ -24,19 +27,45 @@ function createArtwork (canvas, params = {}) {
   const useFullscreen = params.fullscreen !== false;
 
   const renderer = new THREE.WebGLRenderer({ antialias: true, canvas });
-  renderer.setClearColor('#FBF9F3', 1);
 
   const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, -100, 100);
   const scene = new THREE.Scene();
 
+  const colorPalettes = {
+    dark: {
+      background: '#313F61',
+      colors: [
+        '#DF1378',
+        '#0C2AD9',
+        '#FEC3BE',
+        '#DDE4F0',
+        '#7A899C'
+      ]
+    },
+    light: {
+      background: '#FBF9F3',
+      colors: [
+        '#313F61',
+        '#DF1378',
+        '#0C2AD9',
+        '#FEC3BE',
+        '#DDE4F0',
+        '#7A899C'
+      ]
+    }
+  };
+
   const app = {
     camera,
     scene,
-    unitScale: new THREE.Vector2(1, 1)
+    canvas,
+    sceneBounds: new THREE.Box2(),
+    unitScale: new THREE.Vector2(1, 1),
+    colorPalette: colorPalettes.light
     // will contain some other properties for scenes to use, like width/height
   };
-
-  const tickFPS = 24;
+  
+  const tickFPS = 30;
 
   let raf;
   let tickFrame = 0;
@@ -50,6 +79,7 @@ function createArtwork (canvas, params = {}) {
   let main;
   let zigZag;
 
+  updatePalette();
   draw();
 
   const api = {
@@ -82,6 +112,15 @@ function createArtwork (canvas, params = {}) {
     clear,
     reset,
     stop,
+    randomize () {
+      traverse('onTrigger', 'randomize');
+    },
+    swapPalettes () {
+      const newPalette = app.colorPalette === colorPalettes.light ? colorPalettes.dark : colorPalettes.light;
+      app.colorPalette = newPalette;
+      updatePalette();
+      traverse('onTrigger', 'palette');
+    },
     hide () {
       canvas.style.visibility = 'hidden';
     },
@@ -91,6 +130,10 @@ function createArtwork (canvas, params = {}) {
   };
 
   return api;
+
+  function updatePalette () {
+    renderer.setClearColor(app.colorPalette.background, 1);
+  }
 
   function resize (width, height, pixelRatio) {
     width = defined(width, window.innerWidth);
@@ -112,10 +155,21 @@ function createArtwork (canvas, params = {}) {
     app.unitScale.x = aspect;
 
     camera.updateProjectionMatrix();
+    camera.updateMatrix();
+    camera.updateMatrixWorld();
     app.width = width;
     app.height = height;
     app.pixelRatio = pixelRatio;
     app.aspect = aspect;
+
+    app.sceneBounds.min.set(-1, -1);
+    app.sceneBounds.max.set(1, 1);
+    // project clip space into real world space
+    tmpVec3.set(app.sceneBounds.min.x, app.sceneBounds.min.y, 0).unproject(camera);
+    app.sceneBounds.min.copy(tmpVec3);
+    tmpVec3.set(app.sceneBounds.max.x, app.sceneBounds.max.y, 0).unproject(camera);
+    app.sceneBounds.max.copy(tmpVec3);
+
     hasResized = true;
     draw();
   }
