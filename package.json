@@ -32,6 +32,7 @@
     "svg-mesh-3d": "^1.1.0",
     "three": "^0.92.0",
     "three-buffer-vertex-data": "^1.1.0",
+    "three.meshline": "^1.1.0",
     "touches": "^1.2.2",
     "unlerp": "^1.0.1",
     "weighted-random": "^0.1.0"
