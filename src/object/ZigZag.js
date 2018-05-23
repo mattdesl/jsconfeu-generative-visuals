@@ -51,17 +51,17 @@ module.exports = class ZigZag extends BaseObject {
   }
 
   randomize(opt = {}) {
-    this.headPos = new THREE.Vector2();
-    this.tailPos = new THREE.Vector2();
-
-    this.zigZagIdx = 0;
-    this.line.setGeometry(this.getLineGeometry(this.zigZagIdx));
-
-    this.mesh.material.uniforms.color.value = defined(opt.color, { r: 0, g: 0, b: 0 });
-    this.mesh.material.uniforms.lineWidth.value = defined(opt.lineWidth, 0.04);
-
+    if (opt.color) this.mesh.material.uniforms.color.value = opt.color;
+    if (typeof opt.lineWidth === 'number') this.mesh.material.uniforms.lineWidth.value = opt.lineWidth;
     this.mesh.material.uniforms.resolution.value.x = this.app.width;
     this.mesh.material.uniforms.resolution.value.y = this.app.height;
+  }
+
+  reset () {
+    this.headPos = new THREE.Vector2();
+    this.tailPos = new THREE.Vector2();
+    this.zigZagIdx = 0;
+    this.line.setGeometry(this.getLineGeometry(this.zigZagIdx));
   }
 
   getLineGeometry(idx) {

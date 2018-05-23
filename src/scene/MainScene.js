@@ -5,6 +5,7 @@ const anime = require('animejs');
 const colliderCircle = require('../util/colliderCircle');
 const touches = require('touches');
 const Shape = require('../object/Shape');
+const pickColors = require('../util/pickColors');
 
 const shapeTypes = [
   { weight: 100, value: 'circle-blob' },
@@ -40,29 +41,14 @@ const materialTypes = [
 //   sharpEdges: false // rounded edges or not for things like triangle/etc
 // }
 
-const getColor = colorStyle => {
-  const color = new THREE.Color().set(colorStyle);
-  const hOff = RND.randomFloat(-1, 1) * (2 / 360);
-  const sOff = RND.randomFloat(-1, 1) * 0.01;
-  const lOff = RND.randomFloat(-1, 1) * 0.025;
-  color.offsetHSL(hOff, sOff, lOff);
-  color.r = clamp(color.r, 0, 1);
-  color.g = clamp(color.g, 0, 1);
-  color.b = clamp(color.b, 0, 1);
-  return color;
-};
-
 const getRandomMaterialProps = ({ colors }) => {
-  const palette = colors[RND.randomInt(colors.length)];
-  const color = getColor(palette);
-  const altPalette = RND.shuffle(colors).find(c => c !== palette);
-  const altColor = getColor(altPalette);
+  const { color, altColor } = pickColors(colors);
 
   // Randomize the object and its materials
   const shapeType = RND.weighted(shapeTypes);
   const materialType = RND.weighted(materialTypes);
   return { shapeType, materialType, altColor, color };
-}
+};
 
 module.exports = class TestScene extends THREE.Object3D {
   constructor (app) {
@@ -238,6 +224,10 @@ module.exports = class TestScene extends THREE.Object3D {
           shape.randomize({ color, altColor });
         }
       });
+    } else if (event === 'clear') {
+      this.clear();
+    } else if (event === 'start') {
+      this.start();
     }
   }
 

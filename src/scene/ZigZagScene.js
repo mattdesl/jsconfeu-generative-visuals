@@ -2,6 +2,7 @@ const RND = require('../util/random');
 const ZigZag = require('../object/ZigZag');
 const newArray = require('new-array');
 const clamp = require('clamp');
+const pickColors = require('../util/pickColors');
 
 function pointOutsideRect([x, y], [rw, rh]) {
   return x > rw || x < -rw || y > rh || y < -rh;
@@ -32,6 +33,7 @@ module.exports = class ZigZagScene extends THREE.Object3D {
   }
 
   clear() {
+    console.log('clear')
     this.pool.forEach(p => {
       p.visible = false;
       p.active = false;
@@ -39,13 +41,28 @@ module.exports = class ZigZagScene extends THREE.Object3D {
   }
 
   start() {
+    console.log('start')
     this.pool.forEach(() => this.next());
+  }
+
+  onTrigger (event) {
+    if (event === 'randomize') {
+      // ... randomize all objects
+    } else if (event === 'palette') {
+      // palette has changed
+      this.pool.forEach(shape => {
+        const { color } = pickColors(this.app.colorPalette.colors);
+        shape.randomize({ color });
+      });
+    } else if (event === 'clear') {
+      this.clear();
+    } else if (event === 'start') {
+      this.start();
+    }
   }
 
   next() {
     const { app, pool } = this;
-
-    const colors = ['#313F61', '#DF1378', '#0C2AD9', '#FEC3BE', '#DDE4F0', '#7A899C'];
 
     const getRandomPosition = () => {
       const edges = [
@@ -65,20 +82,6 @@ module.exports = class ZigZagScene extends THREE.Object3D {
       return vec;
     };
 
-    const getColor = colorStyle => {
-      const color = new THREE.Color().set(colorStyle);
-      const hOff = RND.randomFloat(-1, 1) * (2 / 360);
-      const sOff = RND.randomFloat(-1, 1) * 0.01;
-      const lOff = RND.randomFloat(-1, 1) * 0.025;
-
-      color.offsetHSL(hOff, sOff, lOff);
-      color.r = clamp(color.r, 0, 1);
-      color.g = clamp(color.g, 0, 1);
-      color.head = clamp(color.head, 0, 1);
-
-      return color;
-    };
-
     const findAvailableObject = () => {
       return RND.shuffle(pool).find(p => !p.active);
     };
@@ -89,9 +92,6 @@ module.exports = class ZigZagScene extends THREE.Object3D {
     object.active = true;
     object.visible = true;
     object.wasVisible = false;
-
-    const palette = colors[RND.randomInt(colors.length)];
-    const color = getColor(palette);
 
     const lineWidth = RND.randomFloat(0.04, 0.08);
 
@@ -105,6 +105,8 @@ module.exports = class ZigZagScene extends THREE.Object3D {
     const angle = Math.atan2(position.y - target[1], position.x - target[0]) + Math.PI / 2;
     object.rotation.z = angle;
 
+    const { color } = pickColors(this.app.colorPalette.colors);
+    object.reset();
     object.randomize({ color, lineWidth });
   }
 
@@ -112,6 +114,7 @@ module.exports = class ZigZagScene extends THREE.Object3D {
     const view = [this.app.unitScale.x, this.app.unitScale.y];
 
     this.pool.forEach(p => {
+      if (!p.active) return;
       const position2d = new THREE.Vector2(p.position.x, p.position.y);
 
       const head = p.headPos

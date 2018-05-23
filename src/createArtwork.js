@@ -76,8 +76,6 @@ function createArtwork (canvas, params = {}) {
   let hasInit = false;
   let hasResized = false;
   let stoppedAnimations = [];
-  let main;
-  let zigZag;
 
   updatePalette();
   draw();
@@ -179,16 +177,14 @@ function createArtwork (canvas, params = {}) {
     stoppedAnimations.length = 0;
     anime.running.forEach(a => a.pause());
     anime.running.length = 0;
-    if (main) main.clear();
-    if (zigZag) zigZag.clear();
+    traverse('onTrigger', 'clear');
   }
 
   function reset () {
     // clear all animations and shapes and re-run loop
     clear();
     resetRandomSeed();
-    if (main) main.start();
-    if (zigZag) zigZag.start();
+    traverse('onTrigger', 'start');
   }
 
   function resetRandomSeed () {
@@ -249,10 +245,7 @@ function createArtwork (canvas, params = {}) {
   }
 
   function createScene (scene) {
-    main = new MainScene(app);
-    scene.add(main);
-
-    zigZag = new ZigZagScene(app);
-    scene.add(zigZag);
+    scene.add(new MainScene(app));
+    scene.add(new ZigZagScene(app));
   }
 }
