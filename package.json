@@ -20,6 +20,7 @@
     "glsl-noise": "0.0.0",
     "glsl-pi": "^1.0.0",
     "glsl-random": "0.0.5",
+    "keycode": "^2.2.0",
     "load-asset": "^1.2.0",
     "new-array": "^1.0.0",
     "query-string": "^6.1.0",
@@ -29,6 +30,7 @@
     "svg-mesh-3d": "^1.1.0",
     "three": "^0.92.0",
     "three-buffer-vertex-data": "^1.1.0",
+    "touches": "^1.2.2",
     "unlerp": "^1.0.1",
     "weighted-random": "^0.1.0"
   },

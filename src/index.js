@@ -1,7 +1,7 @@
 global.THREE = require('three');
 const query = require('./util/query');
 const createArtwork = require('./createArtwork');
-
+const keycode = require('keycode');
 const canvas = document.querySelector('#canvas');
 const isFullscreen = !!query.fullscreen;
 
@@ -27,20 +27,21 @@ artwork.load().then(() => {
   // You should not have these events in your redux/react app, but they
   // show how to use the API a bit more
   window.addEventListener('keydown', ev => {
-    if (ev.keyCode === 32) { // space
+    const key = keycode(ev);
+    if (key === 'space') { // space
       ev.preventDefault();
       // Toggle play/pause
       if (artwork.isRunning()) artwork.stop();
       else artwork.start();
-    } else if (ev.keyCode === 82) { // 'r'
-      ev.preventDefault();
+    } else if (key === 'r') {
       // Clear the canas and add new shapes back in with
       // a new random seed
       artwork.reset();
-    } else if (ev.keyCode === 67) { // 'c'
-      ev.preventDefault();
+    } else if (key === 'c') { // 'c'
       // Clear the canvas (does not stop render loop!)
       artwork.clear();
+    } else if (key === 't') {
+      artwork.randomize();
     }
   });
 });

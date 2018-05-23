@@ -6,6 +6,7 @@ const loadAssets = require('./util/loadAssets');
 const MainScene = require('./scene/MainScene');
 const anime = require('animejs');
 const RND = require('./util/random');
+const tmpVec3 = new THREE.Vector3();
 
 module.exports = createArtwork;
 
@@ -33,11 +34,13 @@ function createArtwork (canvas, params = {}) {
   const app = {
     camera,
     scene,
+    canvas,
+    sceneBounds: new THREE.Box2(),
     unitScale: new THREE.Vector2(1, 1)
     // will contain some other properties for scenes to use, like width/height
   };
 
-  const tickFPS = 24;
+  const tickFPS = 30;
 
   let raf;
   let tickFrame = 0;
@@ -82,6 +85,9 @@ function createArtwork (canvas, params = {}) {
     clear,
     reset,
     stop,
+    randomize () {
+      traverse('onTrigger', 'randomize');
+    },
     hide () {
       canvas.style.visibility = 'hidden';
     },
@@ -112,10 +118,21 @@ function createArtwork (canvas, params = {}) {
     app.unitScale.x = aspect;
 
     camera.updateProjectionMatrix();
+    camera.updateMatrix();
+    camera.updateMatrixWorld();
     app.width = width;
     app.height = height;
     app.pixelRatio = pixelRatio;
     app.aspect = aspect;
+
+    app.sceneBounds.min.set(-1, -1);
+    app.sceneBounds.max.set(1, 1);
+    // project clip space into real world space
+    tmpVec3.set(app.sceneBounds.min.x, app.sceneBounds.min.y, 0).unproject(camera);
+    app.sceneBounds.min.copy(tmpVec3);
+    tmpVec3.set(app.sceneBounds.max.x, app.sceneBounds.max.y, 0).unproject(camera);
+    app.sceneBounds.max.copy(tmpVec3);
+
     hasResized = true;
     draw();
   }

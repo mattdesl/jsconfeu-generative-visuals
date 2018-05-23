@@ -18,7 +18,7 @@ module.exports = function getCircularBlob (opt = {}) {
 
   const minDim = 0.25;
   const maxDim = 1.0;
-  const dimScale = RND.randomFloat(0.15, 1.5);
+  const dimScale = RND.randomFloat(0.25, 1.5);
   width = RND.randomFloat(minDim, maxDim);
   height = RND.randomFloat(minDim, maxDim);
 
@@ -36,7 +36,7 @@ module.exports = function getCircularBlob (opt = {}) {
   path.forEach(p => {
     p.x *= width;
     p.y *= height;
-    const rotationOffset = RND.randomFloat(1) > 0.5 ? 0 : RND.randomFloat(0.25, 0.5);
+    const rotationOffset = RND.randomFloat(1) > 0.5 ? 0 : RND.randomFloat(0.0, 0.25);
     p.rotateAround(center, rotation + RND.randomFloat(-1, 1) * rotationOffset);
   });
   return path;
