@@ -93,7 +93,7 @@ function createArtwork (canvas, params = {}) {
         return assets;
       });
     },
-    start () {
+    start (opt = {}) {
       if (!app.assets) {
         console.error('[canvas] Assets have not yet been loaded, must await load() before start()');
       }
@@ -105,7 +105,7 @@ function createArtwork (canvas, params = {}) {
         draw();
         hasInit = true;
       }
-      start();
+      start(opt);
     },
     clear,
     reset,
@@ -184,7 +184,6 @@ function createArtwork (canvas, params = {}) {
     // clear all animations and shapes and re-run loop
     clear();
     resetRandomSeed();
-    traverse('onTrigger', 'start');
   }
 
   function resetRandomSeed () {
@@ -198,6 +197,7 @@ function createArtwork (canvas, params = {}) {
     running = true;
     previousTime = rightNow();
     raf = window.requestAnimationFrame(animate);
+    traverse('onTrigger', 'start');
   }
 
   function stop () {

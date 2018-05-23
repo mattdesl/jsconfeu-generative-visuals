@@ -21,6 +21,7 @@ module.exports = class ZigZagScene extends THREE.Object3D {
         speed: RND.randomFloat(0.3, 1.5)
       });
 
+      mesh.active = false;
       mesh.visible = false;
       this.add(mesh);
 
@@ -28,8 +29,6 @@ module.exports = class ZigZagScene extends THREE.Object3D {
     });
 
     window.pool = this.pool;
-
-    this.start();
   }
 
   clear() {

@@ -66,8 +66,6 @@ module.exports = class TestScene extends THREE.Object3D {
     this.textCollider = colliderCircle({ radius: 1.25 });
     if (this.textCollider.mesh) this.add(this.textCollider.mesh);
 
-    this.start();
-
     touches(this.app.canvas).on('move', (ev, pos) => {
       const x = (pos[0] / this.app.width) * 2 - 1;
       const y = (pos[1] / this.app.height) * -2 + 1;
@@ -86,6 +84,7 @@ module.exports = class TestScene extends THREE.Object3D {
   }
 
   start () {
+    console.log('start');
     const app = this.app;
     const pool = this.pool;
 
