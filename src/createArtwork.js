@@ -11,7 +11,7 @@ const tmpVec3 = new THREE.Vector3();
 
 module.exports = createArtwork;
 
-function createArtwork (canvas, params = {}) {
+function createArtwork(canvas, params = {}) {
   // I've been designing my code to this aspect ratio
   // Since it's assumed it will be the one we use
   const designAspect = 7680 / 1080;
@@ -36,30 +36,17 @@ function createArtwork (canvas, params = {}) {
     dark: {
       name: 'dark',
       background: '#313F61',
-      colors: [
-        '#DF1378',
-        '#0C2AD9',
-        '#FEC3BE',
-        '#DDE4F0',
-        '#7A899C'
-      ]
+      colors: ['#DF1378', '#0C2AD9', '#FEC3BE', '#DDE4F0', '#7A899C']
     },
     light: {
       name: 'light',
       background: '#FBF9F3',
-      colors: [
-        '#313F61',
-        '#DF1378',
-        '#0C2AD9',
-        '#FEC3BE',
-        '#DDE4F0',
-        '#7A899C'
-      ]
+      colors: ['#313F61', '#DF1378', '#0C2AD9', '#FEC3BE', '#DDE4F0', '#7A899C']
     },
     ambient: {
       name: 'ambient',
       background: '#313F61',
-      colors: [ '#FFFFFF' ]
+      colors: ['#FFFFFF']
     }
   };
 
@@ -98,17 +85,17 @@ function createArtwork (canvas, params = {}) {
   const api = {
     resize,
     draw,
-    isRunning () {
+    isRunning() {
       return running;
     },
-    load () {
+    load() {
       return loadAssets({ renderer }).then(assets => {
         app.assets = assets;
         console.log('[canvas] Loaded assets');
         return assets;
       });
     },
-    start (opt = {}) {
+    start(opt = {}) {
       if (!app.assets) {
         console.error('[canvas] Assets have not yet been loaded, must await load() before start()');
       }
@@ -130,26 +117,24 @@ function createArtwork (canvas, params = {}) {
     stop,
     bounce,
     switchMode,
-    spawn () {
-
-    },
-    randomize () {
+    spawn() {},
+    randomize() {
       traverse('onTrigger', 'randomize');
     },
-    swapPalettes () {
+    swapPalettes() {
       const newPalette = app.colorPalette === colorPalettes.light ? colorPalettes.dark : colorPalettes.light;
       app.colorPalette = newPalette;
       updatePalette();
       traverse('onTrigger', 'palette');
     },
-    hide () {
+    hide() {
       canvas.style.visibility = 'hidden';
     },
-    show () {
+    show() {
       canvas.style.visibility = '';
     },
     // set to match text position to be repelled
-    setTextPosition (x, y, radius = 1) {
+    setTextPosition(x, y, radius = 1) {
       traverse('onTrigger', 'colliderPosition', { x, y, radius });
     }
   };
@@ -159,40 +144,38 @@ function createArtwork (canvas, params = {}) {
 
   return api;
 
-  function switchMode (mode) {
+  function switchMode(mode) {
     app.mode = mode;
+    traverse('onTrigger', 'switchMode');
 
     if (mode === 'intro') {
-      // TODO
-    }
-    else if (mode === 'generative') {
+      // TODO: intro :)
+    } else if (mode === 'generative') {
       app.colorPalette = colorPalettes.light;
       updatePalette();
       traverse('onTrigger', 'palette');
-    }
-    else if (mode === 'ambient') {
+    } else if (mode === 'ambient') {
       app.colorPalette = colorPalettes.ambient;
       updatePalette();
       traverse('onTrigger', 'palette');
-    }
-    else {
+    } else {
       console.error(`[mode] unknown mode ${mode}`);
     }
   }
 
-  function updatePalette () {
+  function updatePalette() {
     anime({
       targets: scene,
       backgroundValue: app.colorPalette.background,
       duration: 5000,
-      easing: 'linear',
+      easing: 'easeInQuad',
       update: () => {
         scene.background = new THREE.Color(scene.backgroundValue);
       }
     });
   }
 
-  function resize (width, height, pixelRatio) {
+  function resize(width, height, pixelRatio) {
     width = defined(width, window.innerWidth);
     if (useFullscreen) {
       height = defined(height, window.innerHeight);
@@ -231,7 +214,7 @@ function createArtwork (canvas, params = {}) {
     draw();
   }
 
-  function bounce () {
+  function bounce() {
     const scale = { value: scene.scale.x };
     anime({
       targets: scale,
@@ -255,7 +238,7 @@ function createArtwork (canvas, params = {}) {
     });
   }
 
-  function clear () {
+  function clear() {
     // stop all animations, clear shapes
     stoppedAnimations.length = 0;
     anime.running.forEach(a => a.pause());
@@ -263,17 +246,17 @@ function createArtwork (canvas, params = {}) {
     traverse('onTrigger', 'clear');
   }
 
-  function reset () {
+  function reset() {
     // clear all animations and shapes and re-run loop
     clear();
     resetRandomSeed();
   }
 
-  function resetRandomSeed () {
+  function resetRandomSeed() {
     RND.setSeed(RND.getRandomSeed());
   }
 
-  function resume () {
+  function resume() {
     if (running) return;
     stoppedAnimations.forEach(anim => anim.play());
     stoppedAnimations.length = 0;
@@ -282,7 +265,7 @@ function createArtwork (canvas, params = {}) {
     raf = window.requestAnimationFrame(animate);
   }
 
-  function stop () {
+  function stop() {
     if (!running) return;
     stoppedAnimations = anime.running.slice();
     stoppedAnimations.forEach(r => r.pause());
@@ -291,7 +274,7 @@ function createArtwork (canvas, params = {}) {
     window.cancelAnimationFrame(raf);
   }
 
-  function animate () {
+  function animate() {
     raf = window.requestAnimationFrame(animate);
 
     const now = rightNow();
@@ -302,15 +285,15 @@ function createArtwork (canvas, params = {}) {
     render(elapsedTime, deltaTime);
   }
 
-  function draw () {
+  function draw() {
     render(elapsedTime, 0);
   }
 
-  function render (time, deltaTime) {
+  function render(time, deltaTime) {
     const frameInterval = 1 / tickFPS;
     const deltaSinceTick = time - lastTickTime;
     if (deltaSinceTick > frameInterval) {
-      lastTickTime = time - (deltaSinceTick % frameInterval);
+      lastTickTime = time - deltaSinceTick % frameInterval;
       traverse('frame', tickFrame++, time);
     }
 
@@ -318,7 +301,7 @@ function createArtwork (canvas, params = {}) {
     renderer.render(scene, camera);
   }
 
-  function traverse (fn, ...args) {
+  function traverse(fn, ...args) {
     scene.traverse(t => {
       if (typeof t[fn] === 'function') {
         t[fn](...args);
@@ -326,7 +309,7 @@ function createArtwork (canvas, params = {}) {
     });
   }
 
-  function createScene (scene) {
+  function createScene(scene) {
     scene.add(new MainScene(app));
     scene.add(new ZigZagScene(app));
   }

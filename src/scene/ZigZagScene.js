@@ -17,6 +17,7 @@ module.exports = class ZigZagScene extends THREE.Object3D {
 
   createPool() {
     const maxCapacity = 5;
+    this.activeCapacity = maxCapacity;
 
     this.pool = newArray(maxCapacity).map(() => {
       const mesh = new ZigZag(this.app, {
@@ -61,6 +62,8 @@ module.exports = class ZigZagScene extends THREE.Object3D {
       this.clear();
     } else if (event === 'start') {
       this.start();
+    } else if (event === 'switchMode') {
+      this.activeCapacity = this.app.mode === 'ambient' ? 0 : 5; // no zig-zags in ambient mode, they are too distracting
     }
   }
 
@@ -86,6 +89,9 @@ module.exports = class ZigZagScene extends THREE.Object3D {
     };
 
     const findAvailableObject = () => {
+      const activeCount = pool.filter(p => p.active).length;
+      if (activeCount >= this.activeCapacity) return;
+
       return RND.shuffle(pool).find(p => !p.active);
     };
 
@@ -118,10 +124,13 @@ module.exports = class ZigZagScene extends THREE.Object3D {
 
   update() {
     const view = [this.app.unitScale.x * 1.5, this.app.unitScale.y * 1.05];
+    const position2d = new THREE.Vector2();
 
     this.pool.forEach(p => {
       if (!p.active) return;
-      const position2d = new THREE.Vector2(p.position.x, p.position.y);
+
+      position2d.x = p.position.x;
+      position2d.y = p.position.y;
 
       const head = p.headPos
         .clone()

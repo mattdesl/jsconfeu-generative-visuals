@@ -59,12 +59,14 @@ const getRandomMaterialProps = ({ colors, paletteName }) => {
   return { shapeType, materialType, altColor, color };
 };
 
-module.exports = class TestScene extends THREE.Object3D {
+module.exports = class MainScene extends THREE.Object3D {
   constructor(app) {
     super();
     this.app = app;
 
     const maxCapacity = 100;
+    this.activeCapacity = 30;
+
     this.poolContainer = new THREE.Group();
     this.add(this.poolContainer);
     this.pool = newArray(maxCapacity).map(() => {
@@ -124,6 +126,9 @@ module.exports = class TestScene extends THREE.Object3D {
     };
 
     const findAvailableObject = () => {
+      const activeCount = pool.filter(p => p.active).length;
+      if (activeCount >= this.activeCapacity) return;
+
       return RND.shuffle(pool).find(p => !p.active);
     };
 
@@ -185,9 +190,7 @@ module.exports = class TestScene extends THREE.Object3D {
         object.setAnimation(animation.value);
       };
 
-      const animationDuration = app.mode === 'ambient'
-        ? RND.randomFloat(16000, 32000)
-        : RND.randomFloat(4000, 8000);
+      const animationDuration = app.mode === 'ambient' ? RND.randomFloat(16000, 32000) : RND.randomFloat(4000, 8000);
 
       const durationMod = app.targetScale;
       object.velocity.setScalar(0);
@@ -229,7 +232,7 @@ module.exports = class TestScene extends THREE.Object3D {
       };
     };
 
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < this.activeCapacity; i++) {
       next();
     }
   }
@@ -243,12 +246,6 @@ module.exports = class TestScene extends THREE.Object3D {
       this.poolContainer.children.sort((a, b) => {
         return a.renderOrder - b.renderOrder;
       });
-      // this.pool.forEach(shape => {
-      //   if (shape.active) {
-      //     const { color, altColor, materialType, shapeType } = getRandomMaterialProps({ colors: this.app.colorPalette.colors });
-      //     shape.randomize({ materialType, color, altColor, shapeType });
-      //   }
-      // });
     } else if (event === 'palette') {
       // force shapes to animate out, this will call next() again, and make them re-appear with proper colors
       this.pool.forEach(shape => {
@@ -260,6 +257,8 @@ module.exports = class TestScene extends THREE.Object3D {
       this.clear();
     } else if (event === 'start') {
       this.start();
+    } else if (event === 'switchMode') {
+      this.activeCapacity = this.app.mode === 'ambient' ? 6 : 30;
     } else if (event === 'colliderPosition') {
       this.textCollider.center.x = args.x;
       this.textCollider.center.y = args.y;
