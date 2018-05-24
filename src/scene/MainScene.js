@@ -230,7 +230,7 @@ module.exports = class TestScene extends THREE.Object3D {
     }
   }
 
-  onTrigger(event) {
+  onTrigger(event, args) {
     if (event === 'randomize') {
       this.pool.forEach(p => {
         p.renderOrder = RND.randomInt(-10, 10);
@@ -249,13 +249,17 @@ module.exports = class TestScene extends THREE.Object3D {
       // force shapes to animate out, this will call next() again, and make them re-appear with proper colors
       this.pool.forEach(shape => {
         if (shape.active) {
-          shape.onFinishMovement()
+          shape.onFinishMovement();
         }
       });
     } else if (event === 'clear') {
       this.clear();
     } else if (event === 'start') {
       this.start();
+    } else if (event === 'colliderPosition') {
+      this.textCollider.center.x = args.x;
+      this.textCollider.center.y = args.y;
+      if (args.radius) this.textCollider.radius = args.radius;
     }
   }
 

@@ -144,6 +144,10 @@ function createArtwork (canvas, params = {}) {
     },
     show () {
       canvas.style.visibility = '';
+    },
+    // set to match text position to be repelled
+    setTextPosition (x, y, radius = 1) {
+      traverse('onTrigger', 'colliderPosition', { x, y, radius });
     }
   };
 

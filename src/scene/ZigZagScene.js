@@ -51,8 +51,11 @@ module.exports = class ZigZagScene extends THREE.Object3D {
       this.start();
     } else if (event === 'palette') {
       this.pool.forEach(shape => {
-        const { color } = pickColors(this.app.colorPalette.colors);
-        shape.randomize({ color });
+        // only randomize invisible shapes, others will re-appear with proper colors once they leave the stage
+        if (shape.isOutside) {
+          const { color } = pickColors(this.app.colorPalette.colors);
+          shape.randomize({ color });
+        }
       });
     } else if (event === 'clear') {
       this.clear();
@@ -133,6 +136,7 @@ module.exports = class ZigZagScene extends THREE.Object3D {
         .rotateAround(position2d, p.rotation.z);
 
       const isOutside = pointOutsideRect([head.x, head.y], view) && pointOutsideRect([tail.x, tail.y], view);
+      p.isOutside = isOutside;
 
       if (isOutside) {
         if (p.wasVisible) {
