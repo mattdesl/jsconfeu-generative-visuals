@@ -61,10 +61,10 @@ function createArtwork (canvas, params = {}) {
     canvas,
     sceneBounds: new THREE.Box2(),
     unitScale: new THREE.Vector2(1, 1),
-    colorPalette: colorPalettes.light
+    colorPalette: colorPalettes.dark
     // will contain some other properties for scenes to use, like width/height
   };
-  
+
   const tickFPS = 30;
 
   let raf;
@@ -110,6 +110,10 @@ function createArtwork (canvas, params = {}) {
     clear,
     reset,
     stop,
+    bounce,
+    spawn () {
+
+    },
     randomize () {
       traverse('onTrigger', 'randomize');
     },
@@ -170,6 +174,30 @@ function createArtwork (canvas, params = {}) {
 
     hasResized = true;
     draw();
+  }
+
+  function bounce () {
+    const scale = { value: scene.scale.x };
+    anime({
+      targets: scale,
+      easing: 'easeInQuad',
+      value: 0.9,
+      duration: 250,
+      update: () => {
+        scene.scale.setScalar(scale.value);
+      },
+      complete: () => {
+        anime({
+          duration: 250,
+          targets: scale,
+          easing: 'easeOutQuad',
+          value: 1,
+          update: () => {
+            scene.scale.setScalar(scale.value);
+          }
+        });
+      }
+    });
   }
 
   function clear () {
