@@ -17,12 +17,12 @@ module.exports = class ZigZagScene extends THREE.Object3D {
   }
 
   createPool() {
-    const maxCapacity = 7;
+    const maxCapacity = 5;
 
     this.pool = newArray(maxCapacity).map(() => {
       const mesh = new ZigZag(this.app, {
         segments: RND.randomInt(100, 200),
-        speed: RND.randomFloat(0.5, 1.5)
+        speed: RND.randomFloat(0.75, 1.75)
       });
 
       mesh.visible = false;
@@ -85,7 +85,7 @@ module.exports = class ZigZagScene extends THREE.Object3D {
       const t = RND.randomFloat(0, 1);
 
       const vec = edge[0].clone().lerp(edge[1], t);
-      vec.multiply(app.unitScale).multiplyScalar(RND.randomFloat(1.1, 1.4));
+      vec.multiply(app.unitScale).multiplyScalar(RND.randomFloat(1.3, 1.5));
 
       return vec;
     };
@@ -113,13 +113,15 @@ module.exports = class ZigZagScene extends THREE.Object3D {
     const angle = Math.atan2(position.y - target[1], position.x - target[0]) + Math.PI / 2;
     object.rotation.z = angle;
 
+    const delay = RND.randomFloat(0, 20);
+
     const { color } = pickColors(this.app.colorPalette.colors);
     object.reset();
-    object.randomize({ color, lineWidth });
+    object.randomize({ color, lineWidth, delay });
   }
 
   update() {
-    const view = [this.app.unitScale.x * 1.2, this.app.unitScale.y * 1.2];
+    const view = [this.app.unitScale.x * 1.5, this.app.unitScale.y * 1.05];
 
     this.pool.forEach(p => {
       if (!p.active) return;
