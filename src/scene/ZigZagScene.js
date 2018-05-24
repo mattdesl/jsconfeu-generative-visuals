@@ -52,11 +52,8 @@ module.exports = class ZigZagScene extends THREE.Object3D {
       this.start();
     } else if (event === 'palette') {
       this.pool.forEach(shape => {
-        // only randomize invisible shapes, others will re-appear with proper colors once they leave the stage
-        if (shape.isOutside) {
-          const { color } = pickColors(this.app.colorPalette.colors);
-          shape.randomize({ color });
-        }
+        const { color } = pickColors(this.app.colorPalette.colors);
+        shape.transitionColor(color);
       });
     } else if (event === 'clear') {
       this.clear();
