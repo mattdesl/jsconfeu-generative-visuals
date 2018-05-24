@@ -21,10 +21,10 @@ module.exports = class ZigZag extends BaseObject {
     this.app = app;
     const path = makePath(SVG_PATH);
 
-    const pathSampleCount = defined(opt.length, 200); // TODO: length is segments
+    const pathSampleCount = defined(opt.segments, 200);
     const pathPoints = normalizePath(
       newArray(pathSampleCount).map((_, i) => {
-        const point = path.getPointAtLength(i / pathSampleCount * path.getTotalLength()); // TODO: here is length, multiply `* k`
+        const point = path.getPointAtLength(i / pathSampleCount * path.getTotalLength());
         return [point.x, point.y];
       })
     );
@@ -43,11 +43,18 @@ module.exports = class ZigZag extends BaseObject {
       color: defined(opt.color, { r: 0, g: 0, b: 0 }),
       lineWidth: defined(opt.lineWidth, 0.04)
     });
+    material.depthTest = false;
+    material.depthWrite = false;
+    material.transparent = true; // for layering
 
     this.mesh = new THREE.Mesh(this.line.geometry, material);
     this.mesh.frustumCulled = false;
 
     this.add(this.mesh);
+  }
+
+  destroy () {
+    this.mesh.geometry.dispose();
   }
 
   randomize(opt = {}) {
@@ -57,7 +64,7 @@ module.exports = class ZigZag extends BaseObject {
     this.mesh.material.uniforms.resolution.value.y = this.app.height;
   }
 
-  reset () {
+  reset() {
     this.headPos = new THREE.Vector2();
     this.tailPos = new THREE.Vector2();
     this.zigZagIdx = 0;

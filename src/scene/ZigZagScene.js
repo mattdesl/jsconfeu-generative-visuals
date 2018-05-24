@@ -1,7 +1,6 @@
 const RND = require('../util/random');
 const ZigZag = require('../object/ZigZag');
 const newArray = require('new-array');
-const clamp = require('clamp');
 const pickColors = require('../util/pickColors');
 
 function pointOutsideRect([x, y], [rw, rh]) {
@@ -13,12 +12,16 @@ module.exports = class ZigZagScene extends THREE.Object3D {
     super();
     this.app = app;
 
-    const maxCapacity = 10;
+    this.createPool();
+  }
 
-    this.pool = newArray(maxCapacity).map(() => {
-      const mesh = new ZigZag(app, {
-        length: RND.randomInt(50, 200),
-        speed: RND.randomFloat(0.3, 1.5)
+  createPool() {
+    const maxCapacity = 7;
+
+    this.pool = newArray(maxCapacity).map((_, i) => {
+      const mesh = new ZigZag(this.app, {
+        segments: RND.randomInt(100, 200),
+        speed: RND.randomFloat(0.5, 1.5)
       });
 
       mesh.active = false;
@@ -27,28 +30,39 @@ module.exports = class ZigZagScene extends THREE.Object3D {
 
       return mesh;
     });
+  }
 
-    window.pool = this.pool;
+  destroyPool() {
+    // NOTE: This is pretty expensive as it means pushing a lot of GPU data..
+    // it will cause jank when run during sim
+    this.pool.forEach(p => {
+      p.destroy();
+      this.remove(p);
+      p = undefined;
+    });
+
+    this.pool = [];
   }
 
   clear() {
-    console.log('clear')
     this.pool.forEach(p => {
       p.visible = false;
       p.active = false;
+      p.wasVisible = false;
+      p.reset();
     });
   }
 
   start() {
-    console.log('start')
     this.pool.forEach(() => this.next());
   }
 
-  onTrigger (event) {
+  onTrigger(event) {
     if (event === 'randomize') {
-      // ... randomize all objects
+      // recreate pool to get new random zigzags
+      this.clear();
+      this.start();
     } else if (event === 'palette') {
-      // palette has changed
       this.pool.forEach(shape => {
         const { color } = pickColors(this.app.colorPalette.colors);
         shape.randomize({ color });
@@ -100,7 +114,7 @@ module.exports = class ZigZagScene extends THREE.Object3D {
     const position = getRandomPosition();
     object.position.set(position.x, position.y, 0);
 
-    const target = [RND.randomFloat(-2, 2), RND.randomFloat(-1, 1)];
+    const target = [RND.randomFloat(-3, 3), RND.randomFloat(-1, 1)];
     const angle = Math.atan2(position.y - target[1], position.x - target[0]) + Math.PI / 2;
     object.rotation.z = angle;
 
@@ -110,7 +124,7 @@ module.exports = class ZigZagScene extends THREE.Object3D {
   }
 
   update() {
-    const view = [this.app.unitScale.x, this.app.unitScale.y];
+    const view = [this.app.unitScale.x * 1.2, this.app.unitScale.y * 1.2];
 
     this.pool.forEach(p => {
       if (!p.active) return;

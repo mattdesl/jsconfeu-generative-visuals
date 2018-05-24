@@ -44,6 +44,8 @@ artwork.load().then(() => {
       artwork.swapPalettes();
     } else if (key === 'b') {
       artwork.bounce();
+    } else if (key === 'y') {
+      artwork.randomize();
     }
   });
 });

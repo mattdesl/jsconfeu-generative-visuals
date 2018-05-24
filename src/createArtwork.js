@@ -27,6 +27,7 @@ function createArtwork (canvas, params = {}) {
   const useFullscreen = params.fullscreen !== false;
 
   const renderer = new THREE.WebGLRenderer({ antialias: true, canvas });
+  renderer.sortObjects = false;
 
   const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, -100, 100);
   const scene = new THREE.Scene();
@@ -100,12 +101,15 @@ function createArtwork (canvas, params = {}) {
       if (!hasResized) {
         console.error('[canvas] You must call artwork.resize() at least once before artwork.start()');
       }
+      let needsStart = false;
       if (!hasInit) {
+        needsStart = true;
         createScene(scene);
         draw();
         hasInit = true;
       }
-      start(opt);
+      resume();
+      if (needsStart) traverse('onTrigger', 'start', opt);
     },
     clear,
     reset,
@@ -218,14 +222,13 @@ function createArtwork (canvas, params = {}) {
     RND.setSeed(RND.getRandomSeed());
   }
 
-  function start () {
+  function resume () {
     if (running) return;
     stoppedAnimations.forEach(anim => anim.play());
     stoppedAnimations.length = 0;
     running = true;
     previousTime = rightNow();
     raf = window.requestAnimationFrame(animate);
-    traverse('onTrigger', 'start');
   }
 
   function stop () {
