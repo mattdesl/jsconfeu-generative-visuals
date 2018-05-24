@@ -18,10 +18,9 @@ module.exports = class ZigZagScene extends THREE.Object3D {
   createPool() {
     const maxCapacity = 5;
 
-    this.pool = newArray(maxCapacity).map((_, i) => {
+    this.pool = newArray(maxCapacity).map(() => {
       const mesh = new ZigZag(this.app, {
-        segments: RND.randomInt(100, 200),
-        speed: RND.randomFloat(0.75, 1.75)
+        segments: RND.randomInt(100, 200)
       });
 
       mesh.active = false;
@@ -30,18 +29,6 @@ module.exports = class ZigZagScene extends THREE.Object3D {
 
       return mesh;
     });
-  }
-
-  destroyPool() {
-    // NOTE: This is pretty expensive as it means pushing a lot of GPU data..
-    // it will cause jank when run during sim
-    this.pool.forEach(p => {
-      p.destroy();
-      this.remove(p);
-      p = undefined;
-    });
-
-    this.pool = [];
   }
 
   clear() {
@@ -119,10 +106,11 @@ module.exports = class ZigZagScene extends THREE.Object3D {
     object.rotation.z = angle;
 
     const delay = RND.randomFloat(0, 20);
+    const speed = RND.randomFloat(0.75, 1.75);
 
     const { color } = pickColors(this.app.colorPalette.colors);
     object.reset();
-    object.randomize({ color, lineWidth, delay });
+    object.randomize({ color, lineWidth, delay, speed });
   }
 
   update() {

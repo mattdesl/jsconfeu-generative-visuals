@@ -62,6 +62,8 @@ module.exports = class ZigZag extends BaseObject {
     if (typeof opt.lineWidth === 'number') this.mesh.material.uniforms.lineWidth.value = opt.lineWidth;
     this.delay = opt.delay || 0;
     this.initTime = undefined;
+    if (opt.speed) this.speed = opt.speed;
+
     this.mesh.material.uniforms.resolution.value.x = this.app.width;
     this.mesh.material.uniforms.resolution.value.y = this.app.height;
   }
