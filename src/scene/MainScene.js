@@ -233,16 +233,21 @@ module.exports = class TestScene extends THREE.Object3D {
 
   update (time, dt) {
     this.textCollider.update();
+
+    const tmpVec2 = new THREE.Vector2();
+    const tmpVec3 = new THREE.Vector3();
+
     this.pool.forEach(shape => {
       if (!shape.active || !shape.running) return;
 
-      const tmpVec2 = new THREE.Vector2();
-      const tmpVec3 = new THREE.Vector3();
       const a = shape.collisionArea.getWorldSphere(shape);
       const b = this.textCollider.getWorldSphere(this);
+
+      const size = shape.scale.x / this.app.targetScale * 3;
+
       if (a.intersectsSphere(b)) {
         tmpVec3.copy(a.center).sub(b.center);
-        const bounce = 0.00005;
+        const bounce = 0.000025 * (4 / size);
         shape.velocity.addScaledVector(tmpVec2.copy(tmpVec3), bounce);
       }
     });

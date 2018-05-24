@@ -17,7 +17,7 @@ module.exports = class ZigZagScene extends THREE.Object3D {
   }
 
   createPool() {
-    const maxCapacity = 10;
+    const maxCapacity = 7;
 
     this.pool = newArray(maxCapacity).map(() => {
       const mesh = new ZigZag(this.app, {
