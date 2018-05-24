@@ -83,6 +83,7 @@ module.exports = class ZigZag extends BaseObject {
       r: color.r,
       g: color.g,
       b: color.b,
+      transition: 'linear',
       duration: 5000
     });
   }

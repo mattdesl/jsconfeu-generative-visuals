@@ -161,6 +161,8 @@ function createArtwork(canvas, params = {}) {
   return api;
 
   function switchMode(mode = 'generative') {
+    if (mode === app.mode) return;
+
     app.mode = mode;
     traverse('onTrigger', 'switchMode');
 
