@@ -9,6 +9,7 @@ const RND = require('./util/random');
 const ZigZagScene = require('./scene/ZigZagScene');
 const tmpVec3 = new THREE.Vector3();
 const throttle = require('lodash.throttle');
+const startIntroText = require('./util/introText');
 
 module.exports = createArtwork;
 
@@ -32,6 +33,8 @@ function createArtwork(canvas, params = {}) {
 
   const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, -100, 100);
   const scene = new THREE.Scene();
+
+  let paletteAnimation;
 
   const colorPalettes = {
     dark: {
@@ -119,7 +122,10 @@ function createArtwork(canvas, params = {}) {
         traverse('onTrigger', 'start', opt);
       }
       if (opt.mode === 'intro') {
-        if (app.assets && app.assets.audio) app.assets.audio.play();
+        if (app.assets && app.assets.audio) {
+          app.assets.audio.play();
+        }
+        startIntroText();
       }
     },
     clear,
@@ -175,7 +181,8 @@ function createArtwork(canvas, params = {}) {
   }
 
   function updatePalette() {
-    anime({
+    if (paletteAnimation) paletteAnimation.pause();
+    paletteAnimation = anime({
       targets: scene,
       backgroundValue: app.colorPalette.background,
       duration: 5000,
