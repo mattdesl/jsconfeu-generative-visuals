@@ -14,7 +14,7 @@ module.exports = createArtwork;
 function createArtwork(canvas, params = {}) {
   // I've been designing my code to this aspect ratio
   // Since it's assumed it will be the one we use
-  const designAspect = 7680 / 1080;
+  const designAspect = 7680 / 1200;
 
   // But I've also been testing some other target ratios
   // in case the actual display is not what we have above for some reason
@@ -109,7 +109,13 @@ function createArtwork(canvas, params = {}) {
         hasInit = true;
       }
       resume();
-      if (needsStart) traverse('onTrigger', 'start', opt);
+      switchMode(opt.mode || 'generative');
+      if (needsStart) {
+        traverse('onTrigger', 'start', opt);
+      }
+      if (opt.mode === 'intro') {
+        if (app.assets && app.assets.audio) app.assets.audio.play();
+      }
     },
     clear,
     reset,
@@ -143,12 +149,13 @@ function createArtwork(canvas, params = {}) {
 
   return api;
 
-  function switchMode(mode) {
+  function switchMode(mode = 'generative') {
     app.mode = mode;
     traverse('onTrigger', 'switchMode');
 
     if (mode === 'intro') {
-      // TODO: intro :)
+      app.colorPalette = colorPalettes.dark;
+      updatePalette();
     } else if (mode === 'generative') {
       app.colorPalette = colorPalettes.light;
       updatePalette();
@@ -219,13 +226,13 @@ function createArtwork(canvas, params = {}) {
       targets: scale,
       easing: 'easeInQuad',
       value: 0.9,
-      duration: 250,
+      duration: 500,
       update: () => {
         scene.scale.setScalar(scale.value);
       },
       complete: () => {
         anime({
-          duration: 250,
+          duration: 500,
           targets: scale,
           easing: 'easeOutQuad',
           value: 1,

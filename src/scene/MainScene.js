@@ -4,6 +4,7 @@ const newArray = require('new-array');
 const anime = require('animejs');
 const colliderCircle = require('../util/colliderCircle');
 const touches = require('touches');
+const defined = require('defined');
 const Shape = require('../object/Shape');
 const pickColors = require('../util/pickColors');
 
@@ -76,17 +77,8 @@ module.exports = class MainScene extends THREE.Object3D {
       return mesh;
     });
 
-    this.textCollider = colliderCircle({ radius: 1.5 });
+    this.textCollider = colliderCircle({ radius: 0.85 });
     if (this.textCollider.mesh) this.add(this.textCollider.mesh);
-
-    // Leave this off for now, text is assumed to appear in center
-    // touches(this.app.canvas).on('move', (ev, pos) => {
-    //   const x = (pos[0] / this.app.width) * 2 - 1;
-    //   const y = (pos[1] / this.app.height) * -2 + 1;
-    //   const vec = new THREE.Vector3(x, y, 0);
-    //   vec.unproject(this.app.camera);
-    //   this.textCollider.center.set(vec.x, vec.y);
-    // });
   }
 
   clear() {
@@ -97,10 +89,10 @@ module.exports = class MainScene extends THREE.Object3D {
     });
   }
 
-  start() {
-    console.log('start');
+  start(opt = {}) {
     const app = this.app;
     const pool = this.pool;
+    console.log('starting', this.app.mode);
 
     const getRandomPosition = scale => {
       const edges = [
@@ -132,7 +124,7 @@ module.exports = class MainScene extends THREE.Object3D {
       return RND.shuffle(pool).find(p => !p.active);
     };
 
-    const next = () => {
+    const next = (params = {}) => {
       // Get unused mesh
       const object = findAvailableObject();
 
@@ -157,16 +149,14 @@ module.exports = class MainScene extends THREE.Object3D {
       // const scale = RND.weighted(scales)()
       object.scale.setScalar(scale * (1 / 3) * app.targetScale);
 
-      const p = getRandomPosition(scale);
+      let p;
+      if (app.mode === 'intro') {
+        p = new THREE.Vector2().fromArray(RND.randomCircle([], 1.25));
+      } else {
+        p = getRandomPosition(scale);
+      }
       object.position.set(p.x, p.y, 0);
 
-      // other position we will tween to
-      const other = object.position.clone();
-      other.y *= -1;
-
-      // randomize the direction by some turn amount
-      // const other = new THREE.Vector2().copy(mesh.position)
-      // const randomDirection = new THREE.Vector2().copy(other).normalize()
       const randomDirection = new THREE.Vector2().fromArray(RND.randomCircle([], 1));
 
       // const randomLength = RND.randomFloat(0.25, 5);
@@ -180,8 +170,6 @@ module.exports = class MainScene extends THREE.Object3D {
         .negate();
       const rotStrength = RND.randomFloat(0, 1);
       heading.addScaledVector(randomDirection, rotStrength).normalize();
-      // const heading = other.clone().sub(object.position)
-      //.normalize();
 
       // start at zero
       const animation = { value: 0 };
@@ -190,14 +178,23 @@ module.exports = class MainScene extends THREE.Object3D {
         object.setAnimation(animation.value);
       };
 
-      const animationDuration = app.mode === 'ambient' ? RND.randomFloat(16000, 32000) : RND.randomFloat(4000, 8000);
+      let animationDuration;
+      if (app.mode === 'ambient') animationDuration = RND.randomFloat(16000, 32000);
+      else if (app.mode === 'generative') animationDuration = RND.randomFloat(4000, 8000);
+      else animationDuration = 3000;
 
       const durationMod = app.targetScale;
       object.velocity.setScalar(0);
       object.velocity.addScaledVector(heading, 0.001 * durationMod);
 
       // const newAngle = object.rotation.z + RND.randomFloat(-1, 1) * Math.PI * 2 * 0.25
-      const startDelay = RND.randomFloat(0, 8000);
+      let defaultDelay;
+      if (app.mode === 'intro') {
+        defaultDelay = 0;
+      } else {
+        defaultDelay = RND.randomFloat(0, 8000);
+      }
+      let startDelay = defined(params.startDelay, defaultDelay);
       const animIn = anime({
         targets: animation,
         value: 1,
@@ -232,20 +229,32 @@ module.exports = class MainScene extends THREE.Object3D {
       };
     };
 
-    for (let i = 0; i < this.activeCapacity; i++) {
-      next();
+    if (app.mode === 'intro') {
+      setInterval(() => {
+        next();
+      }, 1500);
+      next()
+    } else {
+      for (let i = 0; i < this.activeCapacity; i++) {
+        next();
+      }
     }
   }
 
   onTrigger(event, args) {
     if (event === 'randomize') {
-      this.pool.forEach(p => {
-        p.renderOrder = RND.randomInt(-10, 10);
-      });
-      console.log('sort');
-      this.poolContainer.children.sort((a, b) => {
-        return a.renderOrder - b.renderOrder;
-      });
+      // this.pool.forEach(p => {
+      //   p.renderOrder = RND.randomInt(-10, 10);
+      // });
+      // console.log('sort');
+      // this.poolContainer.children.sort((a, b) => {
+      //   return a.renderOrder - b.renderOrder;
+      // });
+      this.pool.forEach(shape => {
+        if (!shape.active) return;
+        // TODO: gotta randomize
+        // const { color }
+      })
     } else if (event === 'palette') {
       // force shapes to animate out, this will call next() again, and make them re-appear with proper colors
       this.pool.forEach(shape => {

@@ -1,11 +1,11 @@
 const load = require('load-asset');
+const createAudio = require('./createAudio');
 
 module.exports = function (opt = {}) {
   const renderer = opt.renderer;
 
-  const baseSettings = {
-    
-  }
+  const baseSettings = {};
+
   const textureResolution = 512; // 512 or 1024
   const tileFiles = ['bigdot', /*'contours',*/ 'funkygerms', 'leppard', 'littlesticks', 'smalldot', 'worms'].map(f => {
     return {
@@ -35,6 +35,7 @@ module.exports = function (opt = {}) {
 
   return load.any(
     {
+      audio: createAudio(),
       masks: load.any(maskFiles, err),
       tiles: load.any(tileFiles, err)
       // Can add other named assets here
