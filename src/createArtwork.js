@@ -8,6 +8,7 @@ const anime = require('animejs');
 const RND = require('./util/random');
 const ZigZagScene = require('./scene/ZigZagScene');
 const tmpVec3 = new THREE.Vector3();
+const throttle = require('lodash.throttle');
 
 module.exports = createArtwork;
 
@@ -59,8 +60,8 @@ function createArtwork(canvas, params = {}) {
 
     // ideally we'd have some mode/colorPalette pairing, but this works for now
     colorPalette: colorPalettes.light,
-    mode: 'generative'
-
+    mode: 'generative',
+    audioSignal: 0
     // will contain some other properties for scenes to use, like width/height
   };
 
@@ -81,6 +82,10 @@ function createArtwork(canvas, params = {}) {
 
   updatePalette();
   draw();
+
+  const throttleBeat = throttle(() => {
+    traverse('onTrigger', 'beat');
+  }, 450);
 
   const api = {
     resize,
@@ -116,13 +121,6 @@ function createArtwork(canvas, params = {}) {
       }
       if (opt.mode === 'intro') {
         if (app.assets && app.assets.audio) app.assets.audio.play();
-
-        const beat = () => {
-          traverse('onTrigger', 'beat');
-          bounce();
-        };
-        setInterval(beat, 0.48 * 1000 * 2);
-        beat();
       }
     },
     clear,
@@ -162,8 +160,8 @@ function createArtwork(canvas, params = {}) {
     traverse('onTrigger', 'switchMode');
 
     if (mode === 'intro') {
-      app.colorPalette = colorPalettes.dark;
-      updatePalette();
+      // app.colorPalette = colorPalettes.dark;
+      // updatePalette();
     } else if (mode === 'generative') {
       app.colorPalette = colorPalettes.light;
       updatePalette();
@@ -290,6 +288,13 @@ function createArtwork(canvas, params = {}) {
 
   function animate() {
     raf = window.requestAnimationFrame(animate);
+
+    if (app.mode === 'intro' && app.assets) {
+      app.audioSignal = app.assets.audio.updateFrequencies();
+      if (app.audioSignal > 0.65) {
+        throttleBeat();
+      }
+    }
 
     const now = rightNow();
     const deltaTime = (now - previousTime) / 1000;

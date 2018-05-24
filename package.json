@@ -10,6 +10,7 @@
     "url": "https://github.com/mattdesl"
   },
   "dependencies": {
+    "analyser-frequency-average": "^1.0.0",
     "animejs": "^2.2.0",
     "chaikin-smooth": "^1.0.4",
     "clamp": "^1.0.1",
@@ -23,12 +24,14 @@
     "glsl-random": "0.0.5",
     "keycode": "^2.2.0",
     "load-asset": "^1.2.0",
+    "lodash.throttle": "^4.1.1",
     "new-array": "^1.0.0",
     "normalize-path-scale": "^2.0.0",
     "query-string": "^6.1.0",
     "right-now": "^1.0.0",
     "seed-random": "^2.2.0",
     "simplex-noise": "^2.4.0",
+    "smoothstep": "^1.0.1",
     "svg-mesh-3d": "^1.1.0",
     "three": "^0.92.0",
     "three-buffer-vertex-data": "^1.1.0",
