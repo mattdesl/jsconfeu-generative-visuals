@@ -69,7 +69,10 @@ function createArtwork (canvas, params = {}) {
     canvas,
     sceneBounds: new THREE.Box2(),
     unitScale: new THREE.Vector2(1, 1),
-    colorPalette: colorPalettes.light
+
+    // ideally we'd have some mode/colorPalette pairing, but this works for now
+    colorPalette: colorPalettes.light,
+    mode: 'generative'
 
     // will contain some other properties for scenes to use, like width/height
   };
@@ -157,6 +160,8 @@ function createArtwork (canvas, params = {}) {
   return api;
 
   function switchMode (mode) {
+    app.mode = mode;
+
     if (mode === 'intro') {
       // TODO
     }

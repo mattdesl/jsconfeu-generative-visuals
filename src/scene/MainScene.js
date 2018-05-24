@@ -144,7 +144,7 @@ module.exports = class TestScene extends THREE.Object3D {
         paletteName: app.colorPalette.name
       });
 
-      object.reset(); // reset time properties
+      object.reset({ mode: app.mode }); // reset time properties
       object.randomize(materialProps); // reset color/etc
 
       // randomize position and scale
@@ -181,9 +181,13 @@ module.exports = class TestScene extends THREE.Object3D {
       // start at zero
       const animation = { value: 0 };
       object.setAnimation(animation.value);
-      const updateAnimation = ev => {
+      const updateAnimation = () => {
         object.setAnimation(animation.value);
       };
+
+      const animationDuration = app.mode === 'ambient'
+        ? RND.randomFloat(16000, 32000)
+        : RND.randomFloat(4000, 8000);
 
       const durationMod = app.targetScale;
       object.velocity.setScalar(0);
@@ -201,7 +205,7 @@ module.exports = class TestScene extends THREE.Object3D {
           object.running = true;
           object.visible = true;
         },
-        duration: 8000
+        duration: animationDuration
       });
 
       object.onFinishMovement = () => {
@@ -220,7 +224,7 @@ module.exports = class TestScene extends THREE.Object3D {
             next();
           },
           easing: 'easeOutQuad',
-          duration: 8000
+          duration: animationDuration
         });
       };
     };
