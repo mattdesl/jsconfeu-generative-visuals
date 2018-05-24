@@ -177,7 +177,7 @@ function createArtwork(canvas, params = {}) {
       duration: 5000,
       easing: 'easeInQuad',
       update: () => {
-        scene.background.set(scene.backgroundValue);
+        // scene.background.set(scene.backgroundValue);
       }
     });
   }

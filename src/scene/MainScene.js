@@ -151,7 +151,7 @@ module.exports = class MainScene extends THREE.Object3D {
 
       let p;
       if (app.mode === 'intro') {
-        p = new THREE.Vector2().fromArray(RND.randomCircle([], 1.5));
+        p = new THREE.Vector2().fromArray(RND.randomCircle([], 1.25));
       } else {
         p = getRandomPosition(scale);
       }
@@ -178,14 +178,23 @@ module.exports = class MainScene extends THREE.Object3D {
         object.setAnimation(animation.value);
       };
 
-      const animationDuration = app.mode === 'ambient' ? RND.randomFloat(16000, 32000) : RND.randomFloat(4000, 8000);
+      let animationDuration;
+      if (app.mode === 'ambient') animationDuration = RND.randomFloat(16000, 32000);
+      else if (app.mode === 'generative') animationDuration = RND.randomFloat(4000, 8000);
+      else animationDuration = 3000;
 
       const durationMod = app.targetScale;
       object.velocity.setScalar(0);
       object.velocity.addScaledVector(heading, 0.001 * durationMod);
 
       // const newAngle = object.rotation.z + RND.randomFloat(-1, 1) * Math.PI * 2 * 0.25
-      const startDelay = defined(params.startDelay, RND.randomFloat(0, 8000));
+      let defaultDelay;
+      if (app.mode === 'intro') {
+        defaultDelay = 0;
+      } else {
+        defaultDelay = RND.randomFloat(0, 8000);
+      }
+      let startDelay = defined(params.startDelay, defaultDelay);
       const animIn = anime({
         targets: animation,
         value: 1,
@@ -220,8 +229,15 @@ module.exports = class MainScene extends THREE.Object3D {
       };
     };
 
-    for (let i = 0; i < this.activeCapacity; i++) {
-      next();
+    if (app.mode === 'intro') {
+      setInterval(() => {
+        next();
+      }, 1500);
+      next()
+    } else {
+      for (let i = 0; i < this.activeCapacity; i++) {
+        next();
+      }
     }
   }
 
