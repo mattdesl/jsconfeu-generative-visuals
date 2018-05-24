@@ -151,7 +151,7 @@ module.exports = class MainScene extends THREE.Object3D {
 
       let p = getRandomPosition();
       if (app.mode === 'intro') {
-        const scalar = RND.randomFloat(0.25, 0.25);
+        const scalar = RND.randomFloat(0.25, 0.75);
         p.multiplyScalar(scalar);
       } else {
       }
