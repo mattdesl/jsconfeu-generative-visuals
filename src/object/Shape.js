@@ -54,8 +54,6 @@ module.exports = class Shape extends BaseObject {
     // this.acceleration = new THREE.Vector2();
     this.friction = 0.99999;
 
-    // avoid z-fighting a bit if possible?
-    this.position.z = RND.randomFloat(0, 1);
     this.materialType = null;
     this.shapeType = null;
   }

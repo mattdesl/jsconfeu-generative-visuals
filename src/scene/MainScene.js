@@ -56,25 +56,26 @@ module.exports = class TestScene extends THREE.Object3D {
     this.app = app;
 
     const maxCapacity = 100;
+    this.poolContainer = new THREE.Group();
+    this.add(this.poolContainer);
     this.pool = newArray(maxCapacity).map(() => {
       const mesh = new Shape(app);
       mesh.visible = false;
-      this.add(mesh);
+      this.poolContainer.add(mesh);
       return mesh;
     });
 
-    this.textCollider = colliderCircle({ radius: 1.25 });
+    this.textCollider = colliderCircle({ radius: 1.5 });
     if (this.textCollider.mesh) this.add(this.textCollider.mesh);
 
-    this.start();
-
-    touches(this.app.canvas).on('move', (ev, pos) => {
-      const x = (pos[0] / this.app.width) * 2 - 1;
-      const y = (pos[1] / this.app.height) * -2 + 1;
-      const vec = new THREE.Vector3(x, y, 0);
-      vec.unproject(this.app.camera);
-      this.textCollider.center.set(vec.x, vec.y);
-    });
+    // Leave this off for now, text is assumed to appear in center
+    // touches(this.app.canvas).on('move', (ev, pos) => {
+    //   const x = (pos[0] / this.app.width) * 2 - 1;
+    //   const y = (pos[1] / this.app.height) * -2 + 1;
+    //   const vec = new THREE.Vector3(x, y, 0);
+    //   vec.unproject(this.app.camera);
+    //   this.textCollider.center.set(vec.x, vec.y);
+    // });
   }
 
   clear () {
@@ -86,6 +87,7 @@ module.exports = class TestScene extends THREE.Object3D {
   }
 
   start () {
+    console.log('start');
     const app = this.app;
     const pool = this.pool;
 
@@ -211,12 +213,19 @@ module.exports = class TestScene extends THREE.Object3D {
 
   onTrigger (event) {
     if (event === 'randomize') {
-      this.pool.forEach(shape => {
-        if (shape.active) {
-          const { color, altColor, materialType, shapeType } = getRandomMaterialProps({ colors: this.app.colorPalette.colors });
-          shape.randomize({ materialType, color, altColor, shapeType });
-        }
+      this.pool.forEach(p => {
+        p.renderOrder = RND.randomInt(-10, 10);
       });
+      console.log('sort')
+      this.poolContainer.children.sort((a, b) => {
+        return a.renderOrder - b.renderOrder;
+      });
+      // this.pool.forEach(shape => {
+      //   if (shape.active) {
+      //     const { color, altColor, materialType, shapeType } = getRandomMaterialProps({ colors: this.app.colorPalette.colors });
+      //     shape.randomize({ materialType, color, altColor, shapeType });
+      //   }
+      // });
     } else if (event === 'palette') {
       this.pool.forEach(shape => {
         if (shape.active) {

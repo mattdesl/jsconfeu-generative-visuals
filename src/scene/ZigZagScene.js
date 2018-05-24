@@ -13,18 +13,18 @@ module.exports = class ZigZagScene extends THREE.Object3D {
     this.app = app;
 
     this.createPool();
-    this.start();
   }
 
   createPool() {
     const maxCapacity = 5;
 
-    this.pool = newArray(maxCapacity).map(() => {
+    this.pool = newArray(maxCapacity).map((_, i) => {
       const mesh = new ZigZag(this.app, {
         segments: RND.randomInt(100, 200),
         speed: RND.randomFloat(0.75, 1.75)
       });
 
+      mesh.active = false;
       mesh.visible = false;
       this.add(mesh);
 
@@ -33,7 +33,10 @@ module.exports = class ZigZagScene extends THREE.Object3D {
   }
 
   destroyPool() {
+    // NOTE: This is pretty expensive as it means pushing a lot of GPU data..
+    // it will cause jank when run during sim
     this.pool.forEach(p => {
+      p.destroy();
       this.remove(p);
       p = undefined;
     });
@@ -45,6 +48,8 @@ module.exports = class ZigZagScene extends THREE.Object3D {
     this.pool.forEach(p => {
       p.visible = false;
       p.active = false;
+      p.wasVisible = false;
+      p.reset();
     });
   }
 
@@ -55,8 +60,8 @@ module.exports = class ZigZagScene extends THREE.Object3D {
   onTrigger(event) {
     if (event === 'randomize') {
       // recreate pool to get new random zigzags
-      this.destroyPool();
-      this.createPool();
+      this.clear();
+      this.start();
     } else if (event === 'palette') {
       this.pool.forEach(shape => {
         const { color } = pickColors(this.app.colorPalette.colors);

@@ -27,6 +27,7 @@ function createArtwork (canvas, params = {}) {
   const useFullscreen = params.fullscreen !== false;
 
   const renderer = new THREE.WebGLRenderer({ antialias: true, canvas });
+  renderer.sortObjects = false;
 
   const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, -100, 100);
   const scene = new THREE.Scene();
@@ -61,10 +62,10 @@ function createArtwork (canvas, params = {}) {
     canvas,
     sceneBounds: new THREE.Box2(),
     unitScale: new THREE.Vector2(1, 1),
-    colorPalette: colorPalettes.light
+    colorPalette: colorPalettes.dark
     // will contain some other properties for scenes to use, like width/height
   };
-  
+
   const tickFPS = 30;
 
   let raf;
@@ -93,23 +94,30 @@ function createArtwork (canvas, params = {}) {
         return assets;
       });
     },
-    start () {
+    start (opt = {}) {
       if (!app.assets) {
         console.error('[canvas] Assets have not yet been loaded, must await load() before start()');
       }
       if (!hasResized) {
         console.error('[canvas] You must call artwork.resize() at least once before artwork.start()');
       }
+      let needsStart = false;
       if (!hasInit) {
+        needsStart = true;
         createScene(scene);
         draw();
         hasInit = true;
       }
-      start();
+      resume();
+      if (needsStart) traverse('onTrigger', 'start', opt);
     },
     clear,
     reset,
     stop,
+    bounce,
+    spawn () {
+
+    },
     randomize () {
       traverse('onTrigger', 'randomize');
     },
@@ -172,6 +180,30 @@ function createArtwork (canvas, params = {}) {
     draw();
   }
 
+  function bounce () {
+    const scale = { value: scene.scale.x };
+    anime({
+      targets: scale,
+      easing: 'easeInQuad',
+      value: 0.9,
+      duration: 250,
+      update: () => {
+        scene.scale.setScalar(scale.value);
+      },
+      complete: () => {
+        anime({
+          duration: 250,
+          targets: scale,
+          easing: 'easeOutQuad',
+          value: 1,
+          update: () => {
+            scene.scale.setScalar(scale.value);
+          }
+        });
+      }
+    });
+  }
+
   function clear () {
     // stop all animations, clear shapes
     stoppedAnimations.length = 0;
@@ -184,14 +216,13 @@ function createArtwork (canvas, params = {}) {
     // clear all animations and shapes and re-run loop
     clear();
     resetRandomSeed();
-    traverse('onTrigger', 'start');
   }
 
   function resetRandomSeed () {
     RND.setSeed(RND.getRandomSeed());
   }
 
-  function start () {
+  function resume () {
     if (running) return;
     stoppedAnimations.forEach(anim => anim.play());
     stoppedAnimations.length = 0;
