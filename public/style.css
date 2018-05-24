@@ -31,9 +31,9 @@ canvas {
 }
 
 .canvas-text {
-  font-size: 16px;
+  font-size: 1.75vmax;
   text-align: center;
-  width: 25vw;
+  /* width: 25vw; */
   position: absolute;
 }
 

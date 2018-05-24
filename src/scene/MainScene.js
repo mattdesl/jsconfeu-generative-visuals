@@ -94,7 +94,7 @@ module.exports = class MainScene extends THREE.Object3D {
     const pool = this.pool;
     console.log('starting', this.app.mode);
 
-    const getRandomPosition = scale => {
+    const getRandomPosition = () => {
       const edges = [
         [new THREE.Vector2(-1, -1), new THREE.Vector2(1, -1)],
         [new THREE.Vector2(1, -1), new THREE.Vector2(1, 1)],
@@ -149,11 +149,11 @@ module.exports = class MainScene extends THREE.Object3D {
       // const scale = RND.weighted(scales)()
       object.scale.setScalar(scale * (1 / 3) * app.targetScale);
 
-      let p;
+      let p = getRandomPosition();
       if (app.mode === 'intro') {
-        p = new THREE.Vector2().fromArray(RND.randomCircle([], 1.25));
+        const scalar = RND.randomFloat(0.25, 0.75);
+        p.multiplyScalar(scalar);
       } else {
-        p = getRandomPosition(scale);
       }
       object.position.set(p.x, p.y, 0);
 
@@ -230,18 +230,22 @@ module.exports = class MainScene extends THREE.Object3D {
     };
 
     if (app.mode === 'intro') {
-      setInterval(() => {
-        next();
-      }, 1500);
-      next()
+      next();
     } else {
       for (let i = 0; i < this.activeCapacity; i++) {
         next();
       }
     }
+
+    this.next = next;
+  }
+
+  beat () {
+    this.next();
   }
 
   onTrigger(event, args) {
+    const app = this.app;
     if (event === 'randomize') {
       // this.pool.forEach(p => {
       //   p.renderOrder = RND.randomInt(-10, 10);
@@ -252,8 +256,11 @@ module.exports = class MainScene extends THREE.Object3D {
       // });
       this.pool.forEach(shape => {
         if (!shape.active) return;
-        // TODO: gotta randomize
-        // const { color }
+        const { color, shapeType, materialType, altColor } = getRandomMaterialProps({
+          colors: app.colorPalette.colors,
+          paletteName: app.colorPalette.name
+        });
+        shape.randomize({ color, shapeType, materialType, altColor });
       })
     } else if (event === 'palette') {
       // force shapes to animate out, this will call next() again, and make them re-appear with proper colors
@@ -267,11 +274,15 @@ module.exports = class MainScene extends THREE.Object3D {
     } else if (event === 'start') {
       this.start();
     } else if (event === 'switchMode') {
-      this.activeCapacity = this.app.mode === 'ambient' ? 6 : 30;
+      if (this.app.mode === 'ambient') this.activeCapacity = 6;
+      else if (this.app.mode === 'intro') this.activeCapacity = 10;
+      else this.activeCapacity = 30;
     } else if (event === 'colliderPosition') {
       this.textCollider.center.x = args.x;
       this.textCollider.center.y = args.y;
       if (args.radius) this.textCollider.radius = args.radius;
+    } else if (event === 'beat' && this.app.mode === 'intro') {
+      this.beat();
     }
   }
 

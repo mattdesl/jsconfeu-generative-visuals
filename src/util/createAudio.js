@@ -1,4 +1,6 @@
 const webAudioPlayer = require('web-audio-player');
+const analyserAverage = require('analyser-frequency-average');
+const smoothstep = require('smoothstep');
 
 module.exports = function () {
   const context = new (window.AudioContext || window.webkitAudioContext)();
@@ -8,7 +10,16 @@ module.exports = function () {
       context,
       buffer: true
     });
+    const analyser = context.createAnalyser();
+    player.node.connect(analyser);
     player.node.connect(context.destination);
+    const freqs = new Uint8Array(analyser.fftSize);
+    player.updateFrequencies = () => {
+      analyser.getByteTimeDomainData(freqs);
+      const signal = analyserAverage(analyser, freqs, 40, 125);
+      // const smoothed = smoothstep(signal, 1, 0.75);
+      return signal;
+    };
     player.once('load', () => resolve(player));
     player.once('error', () => reject(new Error(`Could not load audio at ${src}`)));
   });
