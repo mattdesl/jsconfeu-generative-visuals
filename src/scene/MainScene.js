@@ -65,17 +65,8 @@ module.exports = class TestScene extends THREE.Object3D {
       return mesh;
     });
 
-    this.textCollider = colliderCircle({ radius: 1.5 });
+    this.textCollider = colliderCircle({ radius: 0.85 });
     if (this.textCollider.mesh) this.add(this.textCollider.mesh);
-
-    // Leave this off for now, text is assumed to appear in center
-    // touches(this.app.canvas).on('move', (ev, pos) => {
-    //   const x = (pos[0] / this.app.width) * 2 - 1;
-    //   const y = (pos[1] / this.app.height) * -2 + 1;
-    //   const vec = new THREE.Vector3(x, y, 0);
-    //   vec.unproject(this.app.camera);
-    //   this.textCollider.center.set(vec.x, vec.y);
-    // });
   }
 
   clear () {
@@ -86,8 +77,7 @@ module.exports = class TestScene extends THREE.Object3D {
     });
   }
 
-  start () {
-    console.log('start');
+  start (opt = {}) {
     const app = this.app;
     const pool = this.pool;
 
@@ -133,31 +123,16 @@ module.exports = class TestScene extends THREE.Object3D {
 
       // randomize position and scale
       const scale = RND.randomFloat(0.5, 4.0);
-      // const scale = RND.weighted(scales)()
       object.scale.setScalar(scale * (1 / 3) * app.targetScale);
 
-      const p = getRandomPosition(scale);
+      const p = new THREE.Vector2().fromArray(RND.randomCircle([], 1.5));
+      // const p = getRandomPosition(scale);
       object.position.set(p.x, p.y, 0);
 
-      // other position we will tween to
-      const other = object.position.clone();
-      other.y *= -1;
-
-      // randomize the direction by some turn amount
-      // const other = new THREE.Vector2().copy(mesh.position)
-      // const randomDirection = new THREE.Vector2().copy(other).normalize()
       const randomDirection = new THREE.Vector2().fromArray(RND.randomCircle([], 1));
-      
-      // const randomLength = RND.randomFloat(0.25, 5);
-      // randomDirection.y /= app.unitScale.x;
-      // other.addScaledVector(randomDirection, 1);
-      // other.addScaledVector(randomDirection, randomLength);
-
       const heading = object.position.clone().normalize().negate();
       const rotStrength = RND.randomFloat(0, 1);
       heading.addScaledVector(randomDirection, rotStrength).normalize();
-      // const heading = other.clone().sub(object.position)
-      //.normalize();
 
       // start at zero
       const animation = { value: 0 };
@@ -211,21 +186,21 @@ module.exports = class TestScene extends THREE.Object3D {
     }
   }
 
-  onTrigger (event) {
+  onTrigger (event, opt = {}) {
     if (event === 'randomize') {
-      this.pool.forEach(p => {
-        p.renderOrder = RND.randomInt(-10, 10);
-      });
-      console.log('sort')
-      this.poolContainer.children.sort((a, b) => {
-        return a.renderOrder - b.renderOrder;
-      });
-      // this.pool.forEach(shape => {
-      //   if (shape.active) {
-      //     const { color, altColor, materialType, shapeType } = getRandomMaterialProps({ colors: this.app.colorPalette.colors });
-      //     shape.randomize({ materialType, color, altColor, shapeType });
-      //   }
+      // this.pool.forEach(p => {
+      //   p.renderOrder = RND.randomInt(-10, 10);
       // });
+      // console.log('sort')
+      // this.poolContainer.children.sort((a, b) => {
+      //   return a.renderOrder - b.renderOrder;
+      // });
+      this.pool.forEach(shape => {
+        if (shape.active) {
+          const { color, altColor, materialType, shapeType } = getRandomMaterialProps({ colors: this.app.colorPalette.colors });
+          shape.randomize({ materialType, color, altColor, shapeType });
+        }
+      });
     } else if (event === 'palette') {
       this.pool.forEach(shape => {
         if (shape.active) {
@@ -236,7 +211,7 @@ module.exports = class TestScene extends THREE.Object3D {
     } else if (event === 'clear') {
       this.clear();
     } else if (event === 'start') {
-      this.start();
+      this.start(opt);
     }
   }
 

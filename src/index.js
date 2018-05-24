@@ -22,7 +22,7 @@ window.addEventListener('resize', () => artwork.resize());
 // You should only call this once.
 artwork.load().then(() => {
   // Now that everything is loaded, we can start() and stop() the animation
-  artwork.start();
+  artwork.start({ intro: true });
 
   // You should not have these events in your redux/react app, but they
   // show how to use the API a bit more
