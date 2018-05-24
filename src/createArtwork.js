@@ -80,7 +80,6 @@ function createArtwork(canvas, params = {}) {
   scene.backgroundValue = app.colorPalette.background;
   scene.background = new THREE.Color(scene.backgroundValue);
 
-  updatePalette();
   draw();
 
   const throttleBeat = throttle(() => {
@@ -180,7 +179,7 @@ function createArtwork(canvas, params = {}) {
       targets: scene,
       backgroundValue: app.colorPalette.background,
       duration: 5000,
-      easing: 'easeInQuad',
+      easing: [0.385, 0.005, 0.0, 1.0],
       update: () => {
         scene.background.set(scene.backgroundValue);
       }
