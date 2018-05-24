@@ -116,6 +116,13 @@ function createArtwork(canvas, params = {}) {
       }
       if (opt.mode === 'intro') {
         if (app.assets && app.assets.audio) app.assets.audio.play();
+
+        const beat = () => {
+          traverse('onTrigger', 'beat');
+          bounce();
+        };
+        setInterval(beat, 0.48 * 1000 * 2);
+        beat();
       }
     },
     clear,
@@ -177,7 +184,7 @@ function createArtwork(canvas, params = {}) {
       duration: 5000,
       easing: 'easeInQuad',
       update: () => {
-        // scene.background.set(scene.backgroundValue);
+        scene.background.set(scene.backgroundValue);
       }
     });
   }

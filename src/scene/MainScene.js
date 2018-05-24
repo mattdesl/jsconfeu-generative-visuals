@@ -230,10 +230,7 @@ module.exports = class MainScene extends THREE.Object3D {
     };
 
     if (app.mode === 'intro') {
-      setInterval(() => {
-        next();
-      }, 1500);
-      next()
+      next();
     } else {
       for (let i = 0; i < this.activeCapacity; i++) {
         next();
