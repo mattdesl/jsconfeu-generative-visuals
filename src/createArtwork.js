@@ -183,11 +183,14 @@ function createArtwork(canvas, params = {}) {
 
   function updatePalette() {
     if (paletteAnimation) paletteAnimation.pause();
+
+    const isTransitioningToDarkBackground = app.colorPalette.background === colorPalettes.dark.background;
+
     paletteAnimation = anime({
       targets: scene,
       backgroundValue: app.colorPalette.background,
       duration: 5000,
-      easing: [0.385, 0.005, 0.0, 1.0],
+      easing: isTransitioningToDarkBackground ? [0.385, 0.0, 0.0, 1.0] : [1.0, 0.0, 1 - 0.385, 1.0],
       update: () => {
         scene.background.set(scene.backgroundValue);
       }
