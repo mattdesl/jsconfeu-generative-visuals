@@ -133,15 +133,23 @@ module.exports = class Shape extends BaseObject {
     }
   }
 
-  reset () {
-    this.duration = RND.randomFloat(10, 20);
-    this.speed = RND.randomFloat(0.25, 0.5) * 5;
+  reset (opt = {}) {
     this.time = 0;
     this.finished = false;
     this.running = false;
     this.isInView = false;
     this.hasBeenSeen = false;
-    this.rotationSpeed = RND.randomSign() * RND.randomFloat(0.0005, 0.001);
+
+    if (opt.mode === 'ambient') {
+      this.duration = RND.randomFloat(10, 20) * 20;
+      this.speed = RND.randomFloat(0.25, 0.5) * 1;
+      this.rotationSpeed = RND.randomSign() * RND.randomFloat(0.0005, 0.001) * 0.01;
+    }
+    else {
+      this.duration = RND.randomFloat(10, 20);
+      this.speed = RND.randomFloat(0.25, 0.5) * 5;
+      this.rotationSpeed = RND.randomSign() * RND.randomFloat(0.0005, 0.001);
+    }
   }
 
   setAnimation(value) {

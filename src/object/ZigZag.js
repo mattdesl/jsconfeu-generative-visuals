@@ -60,6 +60,10 @@ module.exports = class ZigZag extends BaseObject {
   randomize(opt = {}) {
     if (opt.color) this.mesh.material.uniforms.color.value = opt.color;
     if (typeof opt.lineWidth === 'number') this.mesh.material.uniforms.lineWidth.value = opt.lineWidth;
+    this.delay = opt.delay || 0;
+    this.initTime = undefined;
+    if (opt.speed) this.speed = opt.speed;
+
     this.mesh.material.uniforms.resolution.value.x = this.app.width;
     this.mesh.material.uniforms.resolution.value.y = this.app.height;
   }
@@ -97,7 +101,10 @@ module.exports = class ZigZag extends BaseObject {
     return zigZagPoints;
   }
 
-  update() {
+  update(time) {
+    if (!this.initTime) this.initTime = time;
+    if (time - this.initTime < this.delay) return;
+
     this.zigZagIdx += this.speed;
     this.line.setGeometry(this.getLineGeometry(this.zigZagIdx));
   }

@@ -11,7 +11,7 @@ const tmpVec3 = new THREE.Vector3();
 
 module.exports = createArtwork;
 
-function createArtwork (canvas, params = {}) {
+function createArtwork(canvas, params = {}) {
   // I've been designing my code to this aspect ratio
   // Since it's assumed it will be the one we use
   const designAspect = 7680 / 1200;
@@ -34,25 +34,19 @@ function createArtwork (canvas, params = {}) {
 
   const colorPalettes = {
     dark: {
+      name: 'dark',
       background: '#313F61',
-      colors: [
-        '#DF1378',
-        '#0C2AD9',
-        '#FEC3BE',
-        '#DDE4F0',
-        '#7A899C'
-      ]
+      colors: ['#DF1378', '#0C2AD9', '#FEC3BE', '#DDE4F0', '#7A899C']
     },
     light: {
+      name: 'light',
       background: '#FBF9F3',
-      colors: [
-        '#313F61',
-        '#DF1378',
-        '#0C2AD9',
-        '#FEC3BE',
-        '#DDE4F0',
-        '#7A899C'
-      ]
+      colors: ['#313F61', '#DF1378', '#0C2AD9', '#FEC3BE', '#DDE4F0', '#7A899C']
+    },
+    ambient: {
+      name: 'ambient',
+      background: '#313F61',
+      colors: ['#FFFFFF']
     }
   };
 
@@ -62,7 +56,11 @@ function createArtwork (canvas, params = {}) {
     canvas,
     sceneBounds: new THREE.Box2(),
     unitScale: new THREE.Vector2(1, 1),
-    colorPalette: colorPalettes.dark
+
+    // ideally we'd have some mode/colorPalette pairing, but this works for now
+    colorPalette: colorPalettes.light,
+    mode: 'generative'
+
     // will contain some other properties for scenes to use, like width/height
   };
 
@@ -78,23 +76,26 @@ function createArtwork (canvas, params = {}) {
   let hasResized = false;
   let stoppedAnimations = [];
 
+  scene.backgroundValue = app.colorPalette.background;
+  scene.background = new THREE.Color(scene.backgroundValue);
+
   updatePalette();
   draw();
 
   const api = {
     resize,
     draw,
-    isRunning () {
+    isRunning() {
       return running;
     },
-    load () {
+    load() {
       return loadAssets({ renderer }).then(assets => {
         app.assets = assets;
         console.log('[canvas] Loaded assets');
         return assets;
       });
     },
-    start (opt = {}) {
+    start(opt = {}) {
       if (!app.assets) {
         console.error('[canvas] Assets have not yet been loaded, must await load() before start()');
       }
@@ -109,10 +110,11 @@ function createArtwork (canvas, params = {}) {
         hasInit = true;
       }
       resume();
+      switchMode(opt.mode || 'generative');
       if (needsStart) {
         traverse('onTrigger', 'start', opt);
       }
-      if (opt.intro) {
+      if (opt.mode === 'intro') {
         if (app.assets && app.assets.audio) app.assets.audio.play();
       }
     },
@@ -120,33 +122,67 @@ function createArtwork (canvas, params = {}) {
     reset,
     stop,
     bounce,
-    spawn () {
-
-    },
-    randomize () {
+    switchMode,
+    spawn() {},
+    randomize() {
       traverse('onTrigger', 'randomize');
     },
-    swapPalettes () {
+    swapPalettes() {
       const newPalette = app.colorPalette === colorPalettes.light ? colorPalettes.dark : colorPalettes.light;
       app.colorPalette = newPalette;
       updatePalette();
       traverse('onTrigger', 'palette');
     },
-    hide () {
+    hide() {
       canvas.style.visibility = 'hidden';
     },
-    show () {
+    show() {
       canvas.style.visibility = '';
+    },
+    // set to match text position to be repelled
+    setTextPosition(x, y, radius = 1) {
+      traverse('onTrigger', 'colliderPosition', { x, y, radius });
     }
   };
 
+  // so we can `api.switchMode('ambient')` from devtools
+  window.api = api;
+
   return api;
 
-  function updatePalette () {
-    renderer.setClearColor(app.colorPalette.background, 1);
+  function switchMode(mode = 'generative') {
+    app.mode = mode;
+    traverse('onTrigger', 'switchMode');
+
+    if (mode === 'intro') {
+      app.colorPalette = colorPalettes.dark;
+      updatePalette();
+    } else if (mode === 'generative') {
+      app.colorPalette = colorPalettes.light;
+      updatePalette();
+      traverse('onTrigger', 'palette');
+    } else if (mode === 'ambient') {
+      app.colorPalette = colorPalettes.ambient;
+      updatePalette();
+      traverse('onTrigger', 'palette');
+    } else {
+      console.error(`[mode] unknown mode ${mode}`);
+    }
   }
 
-  function resize (width, height, pixelRatio) {
+  function updatePalette() {
+    anime({
+      targets: scene,
+      backgroundValue: app.colorPalette.background,
+      duration: 5000,
+      easing: 'easeInQuad',
+      update: () => {
+        scene.background.set(scene.backgroundValue);
+      }
+    });
+  }
+
+  function resize(width, height, pixelRatio) {
     width = defined(width, window.innerWidth);
     if (useFullscreen) {
       height = defined(height, window.innerHeight);
@@ -185,7 +221,7 @@ function createArtwork (canvas, params = {}) {
     draw();
   }
 
-  function bounce () {
+  function bounce() {
     const scale = { value: scene.scale.x };
     anime({
       targets: scale,
@@ -209,7 +245,7 @@ function createArtwork (canvas, params = {}) {
     });
   }
 
-  function clear () {
+  function clear() {
     // stop all animations, clear shapes
     stoppedAnimations.length = 0;
     anime.running.forEach(a => a.pause());
@@ -217,17 +253,17 @@ function createArtwork (canvas, params = {}) {
     traverse('onTrigger', 'clear');
   }
 
-  function reset () {
+  function reset() {
     // clear all animations and shapes and re-run loop
     clear();
     resetRandomSeed();
   }
 
-  function resetRandomSeed () {
+  function resetRandomSeed() {
     RND.setSeed(RND.getRandomSeed());
   }
 
-  function resume () {
+  function resume() {
     if (running) return;
     stoppedAnimations.forEach(anim => anim.play());
     stoppedAnimations.length = 0;
@@ -236,7 +272,7 @@ function createArtwork (canvas, params = {}) {
     raf = window.requestAnimationFrame(animate);
   }
 
-  function stop () {
+  function stop() {
     if (!running) return;
     stoppedAnimations = anime.running.slice();
     stoppedAnimations.forEach(r => r.pause());
@@ -245,7 +281,7 @@ function createArtwork (canvas, params = {}) {
     window.cancelAnimationFrame(raf);
   }
 
-  function animate () {
+  function animate() {
     raf = window.requestAnimationFrame(animate);
 
     const now = rightNow();
@@ -256,15 +292,15 @@ function createArtwork (canvas, params = {}) {
     render(elapsedTime, deltaTime);
   }
 
-  function draw () {
+  function draw() {
     render(elapsedTime, 0);
   }
 
-  function render (time, deltaTime) {
+  function render(time, deltaTime) {
     const frameInterval = 1 / tickFPS;
     const deltaSinceTick = time - lastTickTime;
     if (deltaSinceTick > frameInterval) {
-      lastTickTime = time - (deltaSinceTick % frameInterval);
+      lastTickTime = time - deltaSinceTick % frameInterval;
       traverse('frame', tickFrame++, time);
     }
 
@@ -272,7 +308,7 @@ function createArtwork (canvas, params = {}) {
     renderer.render(scene, camera);
   }
 
-  function traverse (fn, ...args) {
+  function traverse(fn, ...args) {
     scene.traverse(t => {
       if (typeof t[fn] === 'function') {
         t[fn](...args);
@@ -280,8 +316,8 @@ function createArtwork (canvas, params = {}) {
     });
   }
 
-  function createScene (scene) {
-    scene.add(new ZigZagScene(app));
+  function createScene(scene) {
     scene.add(new MainScene(app));
+    scene.add(new ZigZagScene(app));
   }
 }

@@ -4,6 +4,7 @@ const newArray = require('new-array');
 const anime = require('animejs');
 const colliderCircle = require('../util/colliderCircle');
 const touches = require('touches');
+const defined = require('defined');
 const Shape = require('../object/Shape');
 const pickColors = require('../util/pickColors');
 
@@ -22,12 +23,21 @@ const shapeTypes = [
 // 'squiggle', 'ring',
 // 'eye', 'feather', 'lightning', 'heart'
 
-const materialTypes = [
-  { weight: 100, value: 'fill' },
-  { weight: 50, value: 'texture-pattern' }
-  // { weight: 50, value: 'shader-pattern' }
-  // { weight: 25, value: 'fill-texture-pattern' }
-];
+const makeMaterialTypesWeights = ({ paletteName }) => {
+  return [
+    { weight: paletteName === 'ambient' ? 5 : 100, value: 'fill' },
+    { weight: 50, value: 'texture-pattern' }
+    // { weight: 50, value: 'shader-pattern' }
+    // { weight: 25, value: 'fill-texture-pattern' }
+  ];
+};
+
+const makeScale = ({ paletteName, materialType }) => {
+  if (paletteName !== 'ambient') return RND.randomFloat(0.5, 4.0);
+
+  // white fill in ambient mode only looks good for small shapes
+  return materialType === 'fill' ? RND.randomFloat(0.5, 0.75) : RND.randomFloat(0.5, 4.0);
+};
 
 // const scales = [
 //   { weight: 50, value: () => RND.randomFloat(2.5, 4) },
@@ -41,21 +51,23 @@ const materialTypes = [
 //   sharpEdges: false // rounded edges or not for things like triangle/etc
 // }
 
-const getRandomMaterialProps = ({ colors }) => {
+const getRandomMaterialProps = ({ colors, paletteName }) => {
   const { color, altColor } = pickColors(colors);
 
   // Randomize the object and its materials
   const shapeType = RND.weighted(shapeTypes);
-  const materialType = RND.weighted(materialTypes);
+  const materialType = RND.weighted(makeMaterialTypesWeights({ paletteName }));
   return { shapeType, materialType, altColor, color };
 };
 
-module.exports = class TestScene extends THREE.Object3D {
-  constructor (app) {
+module.exports = class MainScene extends THREE.Object3D {
+  constructor(app) {
     super();
     this.app = app;
 
     const maxCapacity = 100;
+    this.activeCapacity = 30;
+
     this.poolContainer = new THREE.Group();
     this.add(this.poolContainer);
     this.pool = newArray(maxCapacity).map(() => {
@@ -69,7 +81,7 @@ module.exports = class TestScene extends THREE.Object3D {
     if (this.textCollider.mesh) this.add(this.textCollider.mesh);
   }
 
-  clear () {
+  clear() {
     // reset pool to initial state
     this.pool.forEach(p => {
       p.visible = false;
@@ -77,23 +89,26 @@ module.exports = class TestScene extends THREE.Object3D {
     });
   }
 
-  start (opt = {}) {
+  start(opt = {}) {
     const app = this.app;
     const pool = this.pool;
+    console.log('starting', this.app.mode);
 
-    const getRandomPosition = (scale) => {
+    const getRandomPosition = scale => {
       const edges = [
-        [ new THREE.Vector2(-1, -1), new THREE.Vector2(1, -1) ],
-        [ new THREE.Vector2(1, -1), new THREE.Vector2(1, 1) ],
-        [ new THREE.Vector2(1, 1), new THREE.Vector2(-1, 1) ],
-        [ new THREE.Vector2(-1, 1), new THREE.Vector2(-1, -1) ]
+        [new THREE.Vector2(-1, -1), new THREE.Vector2(1, -1)],
+        [new THREE.Vector2(1, -1), new THREE.Vector2(1, 1)],
+        [new THREE.Vector2(1, 1), new THREE.Vector2(-1, 1)],
+        [new THREE.Vector2(-1, 1), new THREE.Vector2(-1, -1)]
       ];
       const edgeIndex = RND.randomInt(edges.length);
       const isTopOrBottom = edgeIndex === 0 || edgeIndex === 2;
       const edge = edges[edgeIndex];
       // const t = RND.randomFloat(0, 1)
       const t = isTopOrBottom
-        ? (RND.randomBoolean() ? RND.randomFloat(0.0, 0.35) : RND.randomFloat(0.65, 1))
+        ? RND.randomBoolean()
+          ? RND.randomFloat(0.0, 0.35)
+          : RND.randomFloat(0.65, 1)
         : RND.randomFloat(0, 1);
       const vec = edge[0].clone().lerp(edge[1], t);
       vec.x *= RND.randomFloat(1.0, 1.2);
@@ -103,10 +118,13 @@ module.exports = class TestScene extends THREE.Object3D {
     };
 
     const findAvailableObject = () => {
+      const activeCount = pool.filter(p => p.active).length;
+      if (activeCount >= this.activeCapacity) return;
+
       return RND.shuffle(pool).find(p => !p.active);
     };
 
-    const next = () => {
+    const next = (params = {}) => {
       // Get unused mesh
       const object = findAvailableObject();
 
@@ -118,35 +136,56 @@ module.exports = class TestScene extends THREE.Object3D {
       // But initially hidden until we animate in
       object.visible = false;
 
-      object.reset(); // reset time properties
-      object.randomize(getRandomMaterialProps({ colors: app.colorPalette.colors })); // reset color/etc
+      const materialProps = getRandomMaterialProps({
+        colors: app.colorPalette.colors,
+        paletteName: app.colorPalette.name
+      });
+
+      object.reset({ mode: app.mode }); // reset time properties
+      object.randomize(materialProps); // reset color/etc
 
       // randomize position and scale
-      const scale = RND.randomFloat(0.5, 4.0);
+      const scale = makeScale({ paletteName: app.colorPalette.name, materialType: materialProps.materialType });
+      // const scale = RND.weighted(scales)()
       object.scale.setScalar(scale * (1 / 3) * app.targetScale);
 
-      const p = new THREE.Vector2().fromArray(RND.randomCircle([], 1.5));
-      // const p = getRandomPosition(scale);
+      let p;
+      if (app.mode === 'intro') {
+        p = new THREE.Vector2().fromArray(RND.randomCircle([], 1.5));
+      } else {
+        p = getRandomPosition(scale);
+      }
       object.position.set(p.x, p.y, 0);
 
       const randomDirection = new THREE.Vector2().fromArray(RND.randomCircle([], 1));
-      const heading = object.position.clone().normalize().negate();
+
+      // const randomLength = RND.randomFloat(0.25, 5);
+      // randomDirection.y /= app.unitScale.x;
+      // other.addScaledVector(randomDirection, 1);
+      // other.addScaledVector(randomDirection, randomLength);
+
+      const heading = object.position
+        .clone()
+        .normalize()
+        .negate();
       const rotStrength = RND.randomFloat(0, 1);
       heading.addScaledVector(randomDirection, rotStrength).normalize();
 
       // start at zero
       const animation = { value: 0 };
       object.setAnimation(animation.value);
-      const updateAnimation = ev => {
+      const updateAnimation = () => {
         object.setAnimation(animation.value);
       };
+
+      const animationDuration = app.mode === 'ambient' ? RND.randomFloat(16000, 32000) : RND.randomFloat(4000, 8000);
 
       const durationMod = app.targetScale;
       object.velocity.setScalar(0);
       object.velocity.addScaledVector(heading, 0.001 * durationMod);
 
       // const newAngle = object.rotation.z + RND.randomFloat(-1, 1) * Math.PI * 2 * 0.25
-      const startDelay = RND.randomFloat(0, 8000);
+      const startDelay = defined(params.startDelay, RND.randomFloat(0, 8000));
       const animIn = anime({
         targets: animation,
         value: 1,
@@ -157,7 +196,7 @@ module.exports = class TestScene extends THREE.Object3D {
           object.running = true;
           object.visible = true;
         },
-        duration: 8000
+        duration: animationDuration
       });
 
       object.onFinishMovement = () => {
@@ -176,46 +215,51 @@ module.exports = class TestScene extends THREE.Object3D {
             next();
           },
           easing: 'easeOutQuad',
-          duration: 8000
+          duration: animationDuration
         });
       };
     };
 
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < this.activeCapacity; i++) {
       next();
     }
   }
 
-  onTrigger (event, opt = {}) {
+  onTrigger(event, args) {
     if (event === 'randomize') {
       // this.pool.forEach(p => {
       //   p.renderOrder = RND.randomInt(-10, 10);
       // });
-      // console.log('sort')
+      // console.log('sort');
       // this.poolContainer.children.sort((a, b) => {
       //   return a.renderOrder - b.renderOrder;
       // });
       this.pool.forEach(shape => {
-        if (shape.active) {
-          const { color, altColor, materialType, shapeType } = getRandomMaterialProps({ colors: this.app.colorPalette.colors });
-          shape.randomize({ materialType, color, altColor, shapeType });
-        }
-      });
+        if (!shape.active) return;
+        // TODO: gotta randomize
+        // const { color }
+      })
     } else if (event === 'palette') {
+      // force shapes to animate out, this will call next() again, and make them re-appear with proper colors
       this.pool.forEach(shape => {
         if (shape.active) {
-          const { color, altColor } = getRandomMaterialProps({ colors: this.app.colorPalette.colors });
-          shape.randomize({ color, altColor });
+          shape.onFinishMovement();
         }
       });
     } else if (event === 'clear') {
       this.clear();
     } else if (event === 'start') {
-      this.start(opt);
+      this.start();
+    } else if (event === 'switchMode') {
+      this.activeCapacity = this.app.mode === 'ambient' ? 6 : 30;
+    } else if (event === 'colliderPosition') {
+      this.textCollider.center.x = args.x;
+      this.textCollider.center.y = args.y;
+      if (args.radius) this.textCollider.radius = args.radius;
     }
   }
 
-  update (time, dt) {
+  update(time, dt) {
     this.textCollider.update();
 
     const tmpVec2 = new THREE.Vector2();
@@ -238,8 +282,8 @@ module.exports = class TestScene extends THREE.Object3D {
   }
 };
 
-function circlesCollide (a, b) {
+function circlesCollide(a, b) {
   const delta = a.center.distanceToSquared(b.center);
   const r = a.radius + b.radius;
-  return delta <= (r * r);
+  return delta <= r * r;
 }

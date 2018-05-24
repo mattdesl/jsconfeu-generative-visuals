@@ -16,12 +16,12 @@ module.exports = class ZigZagScene extends THREE.Object3D {
   }
 
   createPool() {
-    const maxCapacity = 7;
+    const maxCapacity = 5;
+    this.activeCapacity = maxCapacity;
 
-    this.pool = newArray(maxCapacity).map((_, i) => {
+    this.pool = newArray(maxCapacity).map(() => {
       const mesh = new ZigZag(this.app, {
-        segments: RND.randomInt(100, 200),
-        speed: RND.randomFloat(0.5, 1.5)
+        segments: RND.randomInt(100, 200)
       });
 
       mesh.active = false;
@@ -30,18 +30,6 @@ module.exports = class ZigZagScene extends THREE.Object3D {
 
       return mesh;
     });
-  }
-
-  destroyPool() {
-    // NOTE: This is pretty expensive as it means pushing a lot of GPU data..
-    // it will cause jank when run during sim
-    this.pool.forEach(p => {
-      p.destroy();
-      this.remove(p);
-      p = undefined;
-    });
-
-    this.pool = [];
   }
 
   clear() {
@@ -64,13 +52,18 @@ module.exports = class ZigZagScene extends THREE.Object3D {
       this.start();
     } else if (event === 'palette') {
       this.pool.forEach(shape => {
-        const { color } = pickColors(this.app.colorPalette.colors);
-        shape.randomize({ color });
+        // only randomize invisible shapes, others will re-appear with proper colors once they leave the stage
+        if (shape.isOutside) {
+          const { color } = pickColors(this.app.colorPalette.colors);
+          shape.randomize({ color });
+        }
       });
     } else if (event === 'clear') {
       this.clear();
     } else if (event === 'start') {
       this.start();
+    } else if (event === 'switchMode') {
+      this.activeCapacity = this.app.mode === 'ambient' ? 0 : 5; // no zig-zags in ambient mode, they are too distracting
     }
   }
 
@@ -90,12 +83,15 @@ module.exports = class ZigZagScene extends THREE.Object3D {
       const t = RND.randomFloat(0, 1);
 
       const vec = edge[0].clone().lerp(edge[1], t);
-      vec.multiply(app.unitScale).multiplyScalar(RND.randomFloat(1.1, 1.4));
+      vec.multiply(app.unitScale).multiplyScalar(RND.randomFloat(1.3, 1.5));
 
       return vec;
     };
 
     const findAvailableObject = () => {
+      const activeCount = pool.filter(p => p.active).length;
+      if (activeCount >= this.activeCapacity) return;
+
       return RND.shuffle(pool).find(p => !p.active);
     };
 
@@ -118,17 +114,23 @@ module.exports = class ZigZagScene extends THREE.Object3D {
     const angle = Math.atan2(position.y - target[1], position.x - target[0]) + Math.PI / 2;
     object.rotation.z = angle;
 
+    const delay = RND.randomFloat(0, 20);
+    const speed = RND.randomFloat(0.75, 1.75);
+
     const { color } = pickColors(this.app.colorPalette.colors);
     object.reset();
-    object.randomize({ color, lineWidth });
+    object.randomize({ color, lineWidth, delay, speed });
   }
 
   update() {
-    const view = [this.app.unitScale.x * 1.2, this.app.unitScale.y * 1.2];
+    const view = [this.app.unitScale.x * 1.5, this.app.unitScale.y * 1.05];
+    const position2d = new THREE.Vector2();
 
     this.pool.forEach(p => {
       if (!p.active) return;
-      const position2d = new THREE.Vector2(p.position.x, p.position.y);
+
+      position2d.x = p.position.x;
+      position2d.y = p.position.y;
 
       const head = p.headPos
         .clone()
@@ -143,6 +145,7 @@ module.exports = class ZigZagScene extends THREE.Object3D {
         .rotateAround(position2d, p.rotation.z);
 
       const isOutside = pointOutsideRect([head.x, head.y], view) && pointOutsideRect([tail.x, tail.y], view);
+      p.isOutside = isOutside;
 
       if (isOutside) {
         if (p.wasVisible) {
