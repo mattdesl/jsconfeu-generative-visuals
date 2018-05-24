@@ -34,6 +34,7 @@ function createArtwork (canvas, params = {}) {
 
   const colorPalettes = {
     dark: {
+      name: 'dark',
       background: '#313F61',
       colors: [
         '#DF1378',
@@ -44,6 +45,7 @@ function createArtwork (canvas, params = {}) {
       ]
     },
     light: {
+      name: 'light',
       background: '#FBF9F3',
       colors: [
         '#313F61',
@@ -53,6 +55,11 @@ function createArtwork (canvas, params = {}) {
         '#DDE4F0',
         '#7A899C'
       ]
+    },
+    ambient: {
+      name: 'ambient',
+      background: '#313F61',
+      colors: [ '#FFFFFF' ]
     }
   };
 
@@ -62,7 +69,8 @@ function createArtwork (canvas, params = {}) {
     canvas,
     sceneBounds: new THREE.Box2(),
     unitScale: new THREE.Vector2(1, 1),
-    colorPalette: colorPalettes.dark
+    colorPalette: colorPalettes.ambient
+    
     // will contain some other properties for scenes to use, like width/height
   };
 

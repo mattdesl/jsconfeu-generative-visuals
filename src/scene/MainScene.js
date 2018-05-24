@@ -22,12 +22,21 @@ const shapeTypes = [
 // 'squiggle', 'ring',
 // 'eye', 'feather', 'lightning', 'heart'
 
-const materialTypes = [
-  { weight: 100, value: 'fill' },
-  { weight: 50, value: 'texture-pattern' }
-  // { weight: 50, value: 'shader-pattern' }
-  // { weight: 25, value: 'fill-texture-pattern' }
-];
+const makeMaterialTypesWeights = ({ paletteName }) => {
+  return [
+    { weight: paletteName === 'ambient' ? 5 : 100, value: 'fill' },
+    { weight: 50, value: 'texture-pattern' }
+    // { weight: 50, value: 'shader-pattern' }
+    // { weight: 25, value: 'fill-texture-pattern' }
+  ];
+};
+
+const makeScale = ({ paletteName, materialType }) => {
+  if (paletteName !== 'ambient') return RND.randomFloat(0.5, 4.0);
+
+  // white fill in ambient mode only looks good for small shapes
+  return materialType === 'fill' ? RND.randomFloat(0.5, 0.75) : RND.randomFloat(0.5, 4.0);
+};
 
 // const scales = [
 //   { weight: 50, value: () => RND.randomFloat(2.5, 4) },
@@ -41,17 +50,17 @@ const materialTypes = [
 //   sharpEdges: false // rounded edges or not for things like triangle/etc
 // }
 
-const getRandomMaterialProps = ({ colors }) => {
+const getRandomMaterialProps = ({ colors, paletteName }) => {
   const { color, altColor } = pickColors(colors);
 
   // Randomize the object and its materials
   const shapeType = RND.weighted(shapeTypes);
-  const materialType = RND.weighted(materialTypes);
+  const materialType = RND.weighted(makeMaterialTypesWeights({ paletteName }));
   return { shapeType, materialType, altColor, color };
 };
 
 module.exports = class TestScene extends THREE.Object3D {
-  constructor (app) {
+  constructor(app) {
     super();
     this.app = app;
 
@@ -78,7 +87,7 @@ module.exports = class TestScene extends THREE.Object3D {
     // });
   }
 
-  clear () {
+  clear() {
     // reset pool to initial state
     this.pool.forEach(p => {
       p.visible = false;
@@ -86,24 +95,26 @@ module.exports = class TestScene extends THREE.Object3D {
     });
   }
 
-  start () {
+  start() {
     console.log('start');
     const app = this.app;
     const pool = this.pool;
 
-    const getRandomPosition = (scale) => {
+    const getRandomPosition = scale => {
       const edges = [
-        [ new THREE.Vector2(-1, -1), new THREE.Vector2(1, -1) ],
-        [ new THREE.Vector2(1, -1), new THREE.Vector2(1, 1) ],
-        [ new THREE.Vector2(1, 1), new THREE.Vector2(-1, 1) ],
-        [ new THREE.Vector2(-1, 1), new THREE.Vector2(-1, -1) ]
+        [new THREE.Vector2(-1, -1), new THREE.Vector2(1, -1)],
+        [new THREE.Vector2(1, -1), new THREE.Vector2(1, 1)],
+        [new THREE.Vector2(1, 1), new THREE.Vector2(-1, 1)],
+        [new THREE.Vector2(-1, 1), new THREE.Vector2(-1, -1)]
       ];
       const edgeIndex = RND.randomInt(edges.length);
       const isTopOrBottom = edgeIndex === 0 || edgeIndex === 2;
       const edge = edges[edgeIndex];
       // const t = RND.randomFloat(0, 1)
       const t = isTopOrBottom
-        ? (RND.randomBoolean() ? RND.randomFloat(0.0, 0.35) : RND.randomFloat(0.65, 1))
+        ? RND.randomBoolean()
+          ? RND.randomFloat(0.0, 0.35)
+          : RND.randomFloat(0.65, 1)
         : RND.randomFloat(0, 1);
       const vec = edge[0].clone().lerp(edge[1], t);
       vec.x *= RND.randomFloat(1.0, 1.2);
@@ -128,11 +139,16 @@ module.exports = class TestScene extends THREE.Object3D {
       // But initially hidden until we animate in
       object.visible = false;
 
+      const materialProps = getRandomMaterialProps({
+        colors: app.colorPalette.colors,
+        paletteName: app.colorPalette.name
+      });
+
       object.reset(); // reset time properties
-      object.randomize(getRandomMaterialProps({ colors: app.colorPalette.colors })); // reset color/etc
+      object.randomize(materialProps); // reset color/etc
 
       // randomize position and scale
-      const scale = RND.randomFloat(0.5, 4.0);
+      const scale = makeScale({ paletteName: app.colorPalette.name, materialType: materialProps.materialType });
       // const scale = RND.weighted(scales)()
       object.scale.setScalar(scale * (1 / 3) * app.targetScale);
 
@@ -147,13 +163,16 @@ module.exports = class TestScene extends THREE.Object3D {
       // const other = new THREE.Vector2().copy(mesh.position)
       // const randomDirection = new THREE.Vector2().copy(other).normalize()
       const randomDirection = new THREE.Vector2().fromArray(RND.randomCircle([], 1));
-      
+
       // const randomLength = RND.randomFloat(0.25, 5);
       // randomDirection.y /= app.unitScale.x;
       // other.addScaledVector(randomDirection, 1);
       // other.addScaledVector(randomDirection, randomLength);
 
-      const heading = object.position.clone().normalize().negate();
+      const heading = object.position
+        .clone()
+        .normalize()
+        .negate();
       const rotStrength = RND.randomFloat(0, 1);
       heading.addScaledVector(randomDirection, rotStrength).normalize();
       // const heading = other.clone().sub(object.position)
@@ -211,12 +230,12 @@ module.exports = class TestScene extends THREE.Object3D {
     }
   }
 
-  onTrigger (event) {
+  onTrigger(event) {
     if (event === 'randomize') {
       this.pool.forEach(p => {
         p.renderOrder = RND.randomInt(-10, 10);
       });
-      console.log('sort')
+      console.log('sort');
       this.poolContainer.children.sort((a, b) => {
         return a.renderOrder - b.renderOrder;
       });
@@ -240,7 +259,7 @@ module.exports = class TestScene extends THREE.Object3D {
     }
   }
 
-  update (time, dt) {
+  update(time, dt) {
     this.textCollider.update();
 
     const tmpVec2 = new THREE.Vector2();
@@ -263,8 +282,8 @@ module.exports = class TestScene extends THREE.Object3D {
   }
 };
 
-function circlesCollide (a, b) {
+function circlesCollide(a, b) {
   const delta = a.center.distanceToSquared(b.center);
   const r = a.radius + b.radius;
-  return delta <= (r * r);
+  return delta <= r * r;
 }
