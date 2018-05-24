@@ -246,10 +246,10 @@ module.exports = class TestScene extends THREE.Object3D {
       //   }
       // });
     } else if (event === 'palette') {
+      // force shapes to animate out, this will call next() again, and make them re-appear with proper colors
       this.pool.forEach(shape => {
         if (shape.active) {
-          const { color, altColor } = getRandomMaterialProps({ colors: this.app.colorPalette.colors });
-          shape.randomize({ color, altColor });
+          shape.onFinishMovement()
         }
       });
     } else if (event === 'clear') {

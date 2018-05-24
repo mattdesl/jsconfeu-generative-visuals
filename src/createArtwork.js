@@ -69,8 +69,8 @@ function createArtwork (canvas, params = {}) {
     canvas,
     sceneBounds: new THREE.Box2(),
     unitScale: new THREE.Vector2(1, 1),
-    colorPalette: colorPalettes.ambient
-    
+    colorPalette: colorPalettes.light
+
     // will contain some other properties for scenes to use, like width/height
   };
 
@@ -85,6 +85,9 @@ function createArtwork (canvas, params = {}) {
   let hasInit = false;
   let hasResized = false;
   let stoppedAnimations = [];
+
+  scene.backgroundValue = app.colorPalette.background;
+  scene.background = new THREE.Color(scene.backgroundValue);
 
   updatePalette();
   draw();
@@ -123,6 +126,7 @@ function createArtwork (canvas, params = {}) {
     reset,
     stop,
     bounce,
+    switchMode,
     spawn () {
 
     },
@@ -143,10 +147,40 @@ function createArtwork (canvas, params = {}) {
     }
   };
 
+  // so we can `api.switchMode('ambient')` from devtools
+  window.api = api;
+
   return api;
 
+  function switchMode (mode) {
+    if (mode === 'intro') {
+      // TODO
+    }
+    else if (mode === 'generative') {
+      app.colorPalette = colorPalettes.light;
+      updatePalette();
+      traverse('onTrigger', 'palette');
+    }
+    else if (mode === 'ambient') {
+      app.colorPalette = colorPalettes.ambient;
+      updatePalette();
+      traverse('onTrigger', 'palette');
+    }
+    else {
+      console.error(`[mode] unknown mode ${mode}`);
+    }
+  }
+
   function updatePalette () {
-    renderer.setClearColor(app.colorPalette.background, 1);
+    anime({
+      targets: scene,
+      backgroundValue: app.colorPalette.background,
+      duration: 5000,
+      easing: 'linear',
+      update: () => {
+        scene.background = new THREE.Color(scene.backgroundValue);
+      }
+    });
   }
 
   function resize (width, height, pixelRatio) {
