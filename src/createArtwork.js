@@ -109,22 +109,41 @@ function createArtwork(canvas, params = {}) {
       if (!hasResized) {
         console.error('[canvas] You must call artwork.resize() at least once before artwork.start()');
       }
+
       let needsStart = false;
+
+      // here we have bunch of code that we are repeating from other places,
+      // just so we don't need to run background transition on start if we want
+      // different mode
+      app.mode = opt.mode;
+
+      if (app.mode === 'generative') {
+        app.colorPalette = colorPalettes.light;
+      } else if (app.mode === 'ambient') {
+        app.colorPalette = colorPalettes.ambient;
+      }
+
+      scene.backgroundValue = app.colorPalette.background;
+      scene.background = new THREE.Color(scene.backgroundValue);
+      // repeated code ends here
+
       if (!hasInit) {
         needsStart = true;
         createScene(scene);
         draw();
         hasInit = true;
       }
+
       resume();
-      switchMode(opt.mode || 'generative');
       if (needsStart) {
         traverse('onTrigger', 'start', opt);
       }
+
       if (opt.mode === 'intro') {
         if (app.assets && app.assets.audio) {
           app.assets.audio.play();
         }
+
         startIntroText();
       }
     },
