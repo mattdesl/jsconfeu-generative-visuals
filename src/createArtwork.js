@@ -28,7 +28,8 @@ function createArtwork(canvas, params = {}) {
   // const targetAspect = 1416 / 334
 
   // You can also test full screen, it will give a different look...
-  const useFullscreen = params.fullscreen !== false;
+  const useFullscreen = defined(params.fullscreen, query.fullscreen, false);
+  const autoplay = defined(params.autoplay, query.autoplay, true);
 
   const renderer = new THREE.WebGLRenderer({ antialias: true, canvas });
   renderer.sortObjects = false;
@@ -68,6 +69,8 @@ function createArtwork(canvas, params = {}) {
   const isInitiallyIntro = defined(params.intro, query.intro, false);
   const defaultPreset = isInitiallyIntro ? 'intro0' : 'default';
   const initialPresetKey = defined(params.preset, query.preset, defaultPreset);
+
+  canvas.style.visibility = 'hidden';
   setPreset(initialPresetKey);
   draw();
 
@@ -83,6 +86,7 @@ function createArtwork(canvas, params = {}) {
     },
     load() {
       return loadAssets({ renderer }).then(assets => {
+        canvas.style.visibility = '';
         app.assets = assets;
         console.log('[canvas] Loaded assets');
         return assets;
@@ -122,16 +126,23 @@ function createArtwork(canvas, params = {}) {
         hasInit = true;
       }
 
-      resume();
-      if (needsStart) {
-        traverse('onTrigger', 'start', opt);
-      }
-
-      if (isInitiallyIntro) {
-        if (app.assets && app.assets.audio) {
-          app.assets.audio.play();
+      const runStart = () => {
+        resume();
+        if (needsStart) {
+          traverse('onTrigger', 'start', opt);
         }
-        startIntroText(api);
+        if (opt.intro) setPreset('intro0');
+        if (opt.intro) startIntroSequence();
+      };
+
+      if (opt.intro) {
+        if (autoplay) {
+          runStart();
+        } else {
+          setupIntroClick(runStart);
+        }
+      } else {
+        runStart();
       }
     },
     getPresets: () => presets,
@@ -169,6 +180,27 @@ function createArtwork(canvas, params = {}) {
   window.api = api;
 
   return api;
+  
+  function setupIntroClick (cb) {
+    const text = document.querySelector('.canvas-text')
+    if (text) text.textContent = 'Click to play';
+
+    const done = () => {
+      if (text) text.textContent = '';
+      window.removeEventListener('click', done);
+      window.removeEventListener('touchend', done);
+      cb();
+    };
+    window.addEventListener('click', done);
+    window.addEventListener('touchend', done);
+  }
+
+  function startIntroSequence () {
+    if (app.assets && app.assets.audio) {
+      app.assets.audio.play();
+    }
+    startIntroText(api);
+  }
 
   function setBackground (color) {
     background.set(color);

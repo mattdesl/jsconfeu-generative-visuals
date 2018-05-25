@@ -40,7 +40,7 @@ module.exports = function (api) {
           if (nextItem) {
             setTimeout(() => {
               api.transitionToPreset(nextItem.preset);
-            }, 2000);
+            }, 1750);
           }
         },
         duration: 2000,

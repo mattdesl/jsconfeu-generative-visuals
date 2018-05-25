@@ -8,7 +8,7 @@ module.exports = function () {
     const src = 'assets/audio/intro-short.mp3';
     const player = webAudioPlayer(src, {
       context,
-      buffer: true
+      buffer: false
     });
     const analyser = context.createAnalyser();
     player.node.connect(analyser);
