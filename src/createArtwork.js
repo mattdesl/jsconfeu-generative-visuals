@@ -131,7 +131,13 @@ function createArtwork(canvas, params = {}) {
         if (app.assets && app.assets.audio) {
           app.assets.audio.play();
         }
-        startIntroText();
+        startIntroText(api);
+      }
+    },
+    getPresets: () => presets,
+    fadeOut: () => {
+      if (app.assets && app.assets.audio) {
+        app.assets.audio.stop();
       }
     },
     clear,

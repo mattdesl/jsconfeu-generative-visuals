@@ -1,26 +1,29 @@
 const anime = require('animejs');
 
-module.exports = function () {
+module.exports = function (api) {
   const container = document.querySelector('.canvas-text-container');
   const textEl = document.querySelector('.canvas-text');
-  
+
   const texts = [
-    "SinnerSchrader, Greenkeeper, Cobot & The AMP Project present",
-    "A JSConf International production",
-    "In cooperation with wwwtf.berlin",
-    "And supported by the Chrome team",
-    "Live.js Network",
-    "Nested Loops",
-    "Curated by Feli, Holger, Jan, Malte, Megan & Simone",
-    "Welcome to JSConf EU 2018"
-  ]
+    { preset: 'intro0', text: 'SinnerSchrader, Greenkeeper, Cobot & The AMP Project present' },
+    { preset: 'intro1', text: 'A JSConf International production' },
+    { preset: 'intro2', text: 'In cooperation with wwwtf.berlin' },
+    { preset: 'intro3', text: 'And supported by the Chrome team' },
+    { preset: 'intro4', text: 'Live.js Network' },
+    { preset: 'intro5', text: 'Nested Loops' },
+    { preset: 'intro6', text: 'Curated by Feli, Holger, Jan, Malte, Megan & Simone' },
+    { preset: 'default', text: 'Welcome to JSConf EU 2018' }
+  ];
 
   let index = 0;
 
   function next (opt = {}) {
     const { delay = 0 } = opt;
-    textEl.textContent = texts[index];
+    const item = texts[index];
+    const nextItem = (index < texts.length - 1) ? texts[index + 1] : null;
+    textEl.textContent = item.text;
     textEl.style.opacity = '0';
+    textEl.style.color = api.getPresets()[item.preset].foreground;
     anime.timeline()
       .add({
         targets: textEl,
@@ -32,17 +35,27 @@ module.exports = function () {
       .add({
         targets: textEl,
         opacity: 0,
+        delay: 1000,
+        begin: () => {
+          if (nextItem) {
+            setTimeout(() => {
+              api.transitionToPreset(nextItem.preset);
+            }, 2000);
+          }
+        },
         duration: 2000,
         easing: 'easeInQuad'
       }).finished.then(() => {
         index++;
         if (index > texts.length - 1) {
           console.log('finished');
+          setTimeout(() => {
+            api.fadeOut();
+          });
         } else {
-          next({ delay: 500 });
+          next({ delay: 1000 });
         }
       });
-    
   }
 
   index = 0;

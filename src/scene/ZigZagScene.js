@@ -19,8 +19,6 @@ module.exports = class ZigZagScene extends THREE.Object3D {
 
   createPool() {
     const maxCapacity = 5;
-    this.activeCapacity = maxCapacity;
-
     this.pool = newArray(maxCapacity).map(() => {
       const mesh = new ZigZag(this.app, {
         segments: RND.randomInt(100, 200)
@@ -61,7 +59,6 @@ module.exports = class ZigZagScene extends THREE.Object3D {
 
   onPresetChanged (preset, oldPreset) {
     this.clear();
-    this.activeCapacity = preset.zigZagCapacity;
     this.start();
   }
 
@@ -74,7 +71,6 @@ module.exports = class ZigZagScene extends THREE.Object3D {
       shape.transitionColor(color);
     });
 
-    this.activeCapacity = preset.zigZagCapacity;
     this.trimCapacity();
     this.start();
     // TODO: Could animate out shapes here if capacity is less than current?
@@ -82,8 +78,9 @@ module.exports = class ZigZagScene extends THREE.Object3D {
 
   trimCapacity () {
     const active = this.pool.filter(p => p.active);
-    if (active.length <= this.activeCapacity) return; // less than max
-    const toKill = RND.shuffle(active).slice(this.activeCapacity);
+    const capacity = this.app.preset.zigZagCapacity;
+    if (active.length <= capacity) return; // less than max
+    const toKill = RND.shuffle(active).slice(capacity);
     toKill.forEach(k => k.animateOut());
   }
 
@@ -110,13 +107,15 @@ module.exports = class ZigZagScene extends THREE.Object3D {
 
     const findAvailableObject = () => {
       const activeCount = pool.filter(p => p.active).length;
-      if (activeCount >= this.activeCapacity) return;
+      if (activeCount >= this.app.preset.zigZagCapacity) return;
 
       return RND.shuffle(pool).find(p => !p.active);
     };
 
     const object = findAvailableObject();
     if (!object) return;
+
+    console.log('spawn', this.app.preset)
 
     object.active = true;
     object.visible = true;

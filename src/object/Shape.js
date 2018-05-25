@@ -47,7 +47,7 @@ module.exports = class Shape extends BaseObject {
     this.duration = 1;
     this.speed = 1;
     this.finished = false;
-    this.maxVelocity = 0.005;
+    this.maxVelocity = 0.002;
     this.isInView = false;
 
     this.velocity = new THREE.Vector2();

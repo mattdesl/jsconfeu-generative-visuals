@@ -79,7 +79,7 @@ module.exports = class MainScene extends THREE.Object3D {
       return mesh;
     });
 
-    this.textCollider = colliderCircle({ radius: 1.5 });
+    this.textCollider = colliderCircle({ radius: 1.75 });
     if (this.textCollider.mesh) this.add(this.textCollider.mesh);
   }
 
@@ -195,12 +195,7 @@ module.exports = class MainScene extends THREE.Object3D {
       object.velocity.addScaledVector(heading, 0.001 * durationMod);
 
       // const newAngle = object.rotation.z + RND.randomFloat(-1, 1) * Math.PI * 2 * 0.25
-      let defaultDelay;
-      if (preset.mode === 'intro') {
-        defaultDelay = 0;
-      } else {
-        defaultDelay = RND.randomFloat(0, 8000);
-      }
+      let defaultDelay = RND.randomFloat(0, 8000);
       let startDelay = defined(params.startDelay, defaultDelay);
       const animIn = anime({
         targets: animation,
@@ -284,7 +279,7 @@ module.exports = class MainScene extends THREE.Object3D {
       const newProps = getRandomMaterialProps(preset);
       shape.randomize(newProps);
     });
-    this.stop();
+    this.stop(); // cancel all waiting tweens!
     this.emitInitial();
   }
 
