@@ -1,8 +1,8 @@
 const defaultIntroSettings = {
   foreground: '#FFFFFF',
   mode: 'intro',
-  capacity: 10,
-  initialCapacity: 10,
+  capacity: 20,
+  initialCapacity: 20,
   zigZagCapacity: 0
 };
 
@@ -32,29 +32,21 @@ module.exports = {
   },
   intro1: {
     ...defaultIntroSettings,
-    capacity: 15,
-    initialCapacity: 15,
     background: '#df1379',
     colors: ['#FFFFFF']
   },
   intro2: {
     ...defaultIntroSettings,
-    capacity: 20,
-    initialCapacity: 20,
     background: '#605BC2',
     colors: ['#FFFFFF']
   },
   intro3: {
     ...defaultIntroSettings,
-    capacity: 20,
-    initialCapacity: 20,
     background: '#314061',
     colors: ['#FFFFFF']
   },
   intro4: {
     ...defaultIntroSettings,
-    capacity: 20,
-    initialCapacity: 20,
     background: '#0D2AD9',
     colors: ['#FFFFFF']
   },

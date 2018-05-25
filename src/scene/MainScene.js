@@ -158,8 +158,8 @@ module.exports = class MainScene extends THREE.Object3D {
 
       let p = getRandomPosition();
       if (preset.mode === 'intro') {
-        const scalar = RND.randomFloat(0.5, 1);
-        p.multiplyScalar(scalar);
+        // const scalar = RND.randomFloat(0.5, 1);
+        // p.multiplyScalar(scalar);
       } else {
       }
       object.position.set(p.x, p.y, 0);
@@ -187,8 +187,8 @@ module.exports = class MainScene extends THREE.Object3D {
 
       let animationDuration;
       if (preset.mode === 'ambient') animationDuration = RND.randomFloat(16000, 32000);
-      else if (preset.mode === 'generative') animationDuration = RND.randomFloat(4000, 8000);
-      else animationDuration = 3000;
+      else if (preset.mode === 'intro') animationDuration = RND.randomFloat(4000, 8000);
+      else animationDuration = RND.randomFloat(4000, 8000);
 
       const durationMod = app.targetScale;
       object.velocity.setScalar(0);
@@ -196,6 +196,9 @@ module.exports = class MainScene extends THREE.Object3D {
 
       // const newAngle = object.rotation.z + RND.randomFloat(-1, 1) * Math.PI * 2 * 0.25
       let defaultDelay = RND.randomFloat(0, 8000);
+      if (preset.mode === 'intro') {
+        defaultDelay = RND.randomFloat(0, 500);
+      }
       let startDelay = defined(params.startDelay, defaultDelay);
       const animIn = anime({
         targets: animation,
