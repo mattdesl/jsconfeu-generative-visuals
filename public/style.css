@@ -33,7 +33,7 @@ canvas {
 .canvas-text {
   font-size: 1.75vmax;
   text-align: center;
-  /* width: 25vw; */
+  width: 30vw;
   position: absolute;
 }
 

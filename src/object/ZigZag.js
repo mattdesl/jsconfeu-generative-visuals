@@ -1,3 +1,4 @@
+const anime = require('animejs');
 const normalizePath = require('normalize-path-scale');
 const newArray = require('new-array');
 const BaseObject = require('./BaseObject');
@@ -38,9 +39,12 @@ module.exports = class ZigZag extends BaseObject {
     this.line = new MeshLine();
     this.line.setGeometry(this.getLineGeometry(this.zigZagIdx));
 
+    const color = defined(opt.color, { r: 0, g: 0, b: 0 });
+    this.color = color;
+
     const material = new MeshLineMaterial({
       resolution: new THREE.Vector2(app.width, app.height),
-      color: defined(opt.color, { r: 0, g: 0, b: 0 }),
+      color,
       lineWidth: defined(opt.lineWidth, 0.04)
     });
     material.depthTest = false;
@@ -53,12 +57,15 @@ module.exports = class ZigZag extends BaseObject {
     this.add(this.mesh);
   }
 
-  destroy () {
+  destroy() {
     this.mesh.geometry.dispose();
   }
 
   randomize(opt = {}) {
-    if (opt.color) this.mesh.material.uniforms.color.value = opt.color;
+    if (opt.color) {
+      this.color = opt.color;
+      this.mesh.material.uniforms.color.value = opt.color;
+    }
     if (typeof opt.lineWidth === 'number') this.mesh.material.uniforms.lineWidth.value = opt.lineWidth;
     this.delay = opt.delay || 0;
     this.initTime = undefined;
@@ -66,6 +73,19 @@ module.exports = class ZigZag extends BaseObject {
 
     this.mesh.material.uniforms.resolution.value.x = this.app.width;
     this.mesh.material.uniforms.resolution.value.y = this.app.height;
+  }
+
+  transitionColor(color) {
+    if (this.colorAnimation) this.colorAnimation.pause();
+
+    this.colorAnimation = anime({
+      targets: this.color,
+      r: color.r,
+      g: color.g,
+      b: color.b,
+      transition: 'linear',
+      duration: 5000
+    });
   }
 
   reset() {

@@ -77,7 +77,7 @@ module.exports = class MainScene extends THREE.Object3D {
       return mesh;
     });
 
-    this.textCollider = colliderCircle({ radius: 0.85 });
+    this.textCollider = colliderCircle({ radius: 1.5 });
     if (this.textCollider.mesh) this.add(this.textCollider.mesh);
   }
 
@@ -151,7 +151,7 @@ module.exports = class MainScene extends THREE.Object3D {
 
       let p = getRandomPosition();
       if (app.mode === 'intro') {
-        const scalar = RND.randomFloat(0.25, 0.75);
+        const scalar = RND.randomFloat(0.5, 1);
         p.multiplyScalar(scalar);
       } else {
       }

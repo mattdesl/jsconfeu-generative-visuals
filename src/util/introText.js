@@ -5,7 +5,7 @@ module.exports = function () {
   const textEl = document.querySelector('.canvas-text');
   
   const texts = [
-    "SinnerSchrader, Greenkeeper, Cobot & The AMP Project presents",
+    "SinnerSchrader, Greenkeeper, Cobot & The AMP Project present",
     "A JSConf International production",
     "In cooperation with wwwtf.berlin",
     "And supported by the Chrome team",
