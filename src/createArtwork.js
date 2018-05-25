@@ -9,7 +9,9 @@ const RND = require('./util/random');
 const ZigZagScene = require('./scene/ZigZagScene');
 const tmpVec3 = new THREE.Vector3();
 const throttle = require('lodash.throttle');
+const presets = require('./scene/presets');
 const startIntroText = require('./util/introText');
+const query = require('./util/query');
 
 module.exports = createArtwork;
 
@@ -31,28 +33,11 @@ function createArtwork(canvas, params = {}) {
   const renderer = new THREE.WebGLRenderer({ antialias: true, canvas });
   renderer.sortObjects = false;
 
+  const background = new THREE.Color('white');
+  renderer.setClearColor(background, 1);
+
   const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, -100, 100);
   const scene = new THREE.Scene();
-
-  let paletteAnimation;
-
-  const colorPalettes = {
-    dark: {
-      name: 'dark',
-      background: '#313F61',
-      colors: ['#DF1378', '#0C2AD9', '#FEC3BE', '#DDE4F0', '#7A899C']
-    },
-    light: {
-      name: 'light',
-      background: '#FBF9F3',
-      colors: ['#313F61', '#DF1378', '#0C2AD9', '#FEC3BE', '#DDE4F0', '#7A899C']
-    },
-    ambient: {
-      name: 'ambient',
-      background: '#313F61',
-      colors: ['#FFFFFF']
-    }
-  };
 
   const app = {
     camera,
@@ -60,12 +45,8 @@ function createArtwork(canvas, params = {}) {
     canvas,
     sceneBounds: new THREE.Box2(),
     unitScale: new THREE.Vector2(1, 1),
-
-    // ideally we'd have some mode/colorPalette pairing, but this works for now
-    colorPalette: colorPalettes.light,
-    mode: 'generative',
-    audioSignal: 0
-    // will contain some other properties for scenes to use, like width/height
+    // Holds props for visuals
+    preset: {}
   };
 
   const tickFPS = 30;
@@ -79,10 +60,15 @@ function createArtwork(canvas, params = {}) {
   let hasInit = false;
   let hasResized = false;
   let stoppedAnimations = [];
+  let backgroundAnimation;
 
-  scene.backgroundValue = app.colorPalette.background;
-  scene.background = new THREE.Color(scene.backgroundValue);
+  // scene.backgroundValue = app.colorPalette.background;
+  // scene.background = new THREE.Color(scene.backgroundValue);
 
+  const isInitiallyIntro = defined(params.intro, query.intro, false);
+  const defaultPreset = isInitiallyIntro ? 'intro0' : 'default';
+  const initialPresetKey = defined(params.preset, query.preset, defaultPreset);
+  setPreset(initialPresetKey);
   draw();
 
   const throttleBeat = throttle(() => {
@@ -102,6 +88,8 @@ function createArtwork(canvas, params = {}) {
         return assets;
       });
     },
+    setPreset,
+    transitionToPreset,
     start(opt = {}) {
       if (!app.assets) {
         console.error('[canvas] Assets have not yet been loaded, must await load() before start()');
@@ -114,17 +102,17 @@ function createArtwork(canvas, params = {}) {
 
       // here we have bunch of code that we are repeating from other places,
       // just so we don't need to run background transition on start if we want
-      // different mode
-      app.mode = opt.mode;
+      // // different mode
+      // app.mode = opt.mode;
 
-      if (app.mode === 'generative') {
-        app.colorPalette = colorPalettes.light;
-      } else if (app.mode === 'ambient') {
-        app.colorPalette = colorPalettes.ambient;
-      }
+      // if (app.mode === 'generative') {
+      //   app.colorPalette = colorPalettes.light;
+      // } else if (app.mode === 'ambient') {
+      //   app.colorPalette = colorPalettes.ambient;
+      // }
 
-      scene.backgroundValue = app.colorPalette.background;
-      scene.background = new THREE.Color(scene.backgroundValue);
+      // scene.backgroundValue = app.colorPalette.background;
+      // scene.background = new THREE.Color(scene.backgroundValue);
       // repeated code ends here
 
       if (!hasInit) {
@@ -139,11 +127,10 @@ function createArtwork(canvas, params = {}) {
         traverse('onTrigger', 'start', opt);
       }
 
-      if (opt.mode === 'intro') {
+      if (isInitiallyIntro) {
         if (app.assets && app.assets.audio) {
           app.assets.audio.play();
         }
-
         startIntroText();
       }
     },
@@ -151,8 +138,6 @@ function createArtwork(canvas, params = {}) {
     reset,
     stop,
     bounce,
-    switchMode,
-    spawn() {},
     randomize() {
       traverse('onTrigger', 'randomize');
     },
@@ -174,47 +159,46 @@ function createArtwork(canvas, params = {}) {
     }
   };
 
-  // so we can `api.switchMode('ambient')` from devtools
+  // so we can `api.setPreset('ambient')` from devtools
   window.api = api;
 
   return api;
 
-  function switchMode(mode = 'generative') {
-    if (mode === app.mode) return;
-
-    app.mode = mode;
-    traverse('onTrigger', 'switchMode');
-
-    if (mode === 'intro') {
-      // app.colorPalette = colorPalettes.dark;
-      // updatePalette();
-    } else if (mode === 'generative') {
-      app.colorPalette = colorPalettes.light;
-      updatePalette();
-      traverse('onTrigger', 'palette');
-    } else if (mode === 'ambient') {
-      app.colorPalette = colorPalettes.ambient;
-      updatePalette();
-      traverse('onTrigger', 'palette');
-    } else {
-      console.error(`[mode] unknown mode ${mode}`);
-    }
+  function setBackground (color) {
+    background.set(color);
+    renderer.setClearColor(background, 1);
   }
 
-  function updatePalette() {
-    if (paletteAnimation) paletteAnimation.pause();
+  function setPreset (key) {
+    const newPreset = presets[key] || presets.default;
+    const oldPreset = Object.assign({}, app.preset);
+    app.preset = Object.assign({}, newPreset);
+    setBackground(app.preset.background);
+    traverse('onPresetChanged', app.preset, oldPreset);
+  }
 
-    const isTransitioningToDarkBackground = app.colorPalette.background === colorPalettes.dark.background;
+  function transitionToPreset (key) {
+    const newPreset = presets[key] || presets.default;
+    const oldPreset = Object.assign({}, app.preset);
+    app.preset = Object.assign({}, newPreset);
 
-    paletteAnimation = anime({
-      targets: scene,
-      backgroundValue: app.colorPalette.background,
+    if (backgroundAnimation) backgroundAnimation.pause();
+    const oldColor = background.clone();
+    const newColor = new THREE.Color().set(app.preset.background);
+    const tmpColor = new THREE.Color();
+    const tween = { value: 0 };
+    backgroundAnimation = anime({
+      targets: tween,
+      value: 1,
       duration: 5000,
-      easing: isTransitioningToDarkBackground ? [0.385, 0.0, 0.0, 1.0] : [1.0, 0.0, 1 - 0.385, 1.0],
+      easing: [ .12,.93,.12,.93 ],
       update: () => {
-        scene.background.set(scene.backgroundValue);
+        tmpColor.copy(oldColor).lerp(newColor, tween.value);
+        setBackground(tmpColor);
       }
     });
+
+    traverse('onPresetTransition', app.preset, oldPreset);
   }
 
   function resize(width, height, pixelRatio) {
@@ -359,7 +343,7 @@ function createArtwork(canvas, params = {}) {
   }
 
   function createScene(scene) {
-    scene.add(new MainScene(app));
     scene.add(new ZigZagScene(app));
+    scene.add(new MainScene(app));
   }
 }

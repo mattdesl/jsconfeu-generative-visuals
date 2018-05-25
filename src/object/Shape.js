@@ -140,12 +140,15 @@ module.exports = class Shape extends BaseObject {
     this.isInView = false;
     this.hasBeenSeen = false;
 
+    this.resetSpeeds(opt);
+  }
+
+  resetSpeeds (opt = {}) {
     if (opt.mode === 'ambient') {
       this.duration = RND.randomFloat(10, 20) * 20;
       this.speed = RND.randomFloat(0.25, 0.5) * 1;
       this.rotationSpeed = RND.randomSign() * RND.randomFloat(0.0005, 0.001) * 0.01;
-    }
-    else {
+    } else {
       this.duration = RND.randomFloat(10, 20);
       this.speed = RND.randomFloat(0.25, 0.5) * 5;
       this.rotationSpeed = RND.randomSign() * RND.randomFloat(0.0005, 0.001);

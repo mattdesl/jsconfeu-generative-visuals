@@ -22,7 +22,7 @@ window.addEventListener('resize', () => artwork.resize());
 // You should only call this once.
 artwork.load().then(() => {
   // Now that everything is loaded, we can start() and stop() the animation
-  artwork.start({ mode: query.mode || 'generative' });
+  artwork.start();
 
   // You should not have these events in your redux/react app, but they
   // show how to use the API a bit more
@@ -33,19 +33,6 @@ artwork.load().then(() => {
       // Toggle play/pause
       if (artwork.isRunning()) artwork.stop();
       else artwork.start();
-    } else if (key === 'r') {
-      // Clear the canas and add new shapes back in with
-      // a new random seed
-      artwork.reset();
-    } else if (key === 'c') { // 'c'
-      // Clear the canvas (does not stop render loop!)
-      artwork.clear();
-    } else if (key === 't') {
-      artwork.swapPalettes();
-    } else if (key === 'b') {
-      artwork.bounce();
-    } else if (key === 'y') {
-      artwork.randomize();
     }
   });
 });

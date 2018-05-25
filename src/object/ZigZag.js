@@ -62,6 +62,8 @@ module.exports = class ZigZag extends BaseObject {
   }
 
   randomize(opt = {}) {
+    if (this.lineWidthAnimation) this.lineWidthAnimation.pause();
+    if (this.colorAnimation) this.colorAnimation.pause();
     if (opt.color) {
       this.color = opt.color;
       this.mesh.material.uniforms.color.value = opt.color;
@@ -83,8 +85,18 @@ module.exports = class ZigZag extends BaseObject {
       r: color.r,
       g: color.g,
       b: color.b,
-      transition: 'linear',
-      duration: 5000
+      easing: 'linear',
+      duration: 1000
+    });
+  }
+
+  animateOut () {
+    if (this.lineWidthAnimation) this.lineWidthAnimation.pause();
+    this.lineWidthAnimation = anime({
+      targets: this.mesh.material.uniforms.lineWidth,
+      value: 0,
+      easing: 'easeOutExpo',
+      duration: 2000
     });
   }
 

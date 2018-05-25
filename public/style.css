@@ -21,6 +21,7 @@ canvas {
 
 .canvas-text-container {
   position: absolute;
+  color: white;
   top: 0;
   left: 0;
   width: 100%;

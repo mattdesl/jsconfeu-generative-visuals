@@ -7,6 +7,7 @@ const touches = require('touches');
 const defined = require('defined');
 const Shape = require('../object/Shape');
 const pickColors = require('../util/pickColors');
+const noop = () => {};
 
 const shapeTypes = [
   { weight: 100, value: 'circle-blob' },
@@ -23,17 +24,17 @@ const shapeTypes = [
 // 'squiggle', 'ring',
 // 'eye', 'feather', 'lightning', 'heart'
 
-const makeMaterialTypesWeights = ({ paletteName }) => {
+const makeMaterialTypesWeights = (mode) => {
   return [
-    { weight: paletteName === 'ambient' ? 5 : 100, value: 'fill' },
+    { weight: mode === 'ambient' ? 5 : 100, value: 'fill' },
     { weight: 50, value: 'texture-pattern' }
     // { weight: 50, value: 'shader-pattern' }
     // { weight: 25, value: 'fill-texture-pattern' }
   ];
 };
 
-const makeScale = ({ paletteName, materialType }) => {
-  if (paletteName !== 'ambient') return RND.randomFloat(0.5, 4.0);
+const makeScale = ({ mode, materialType }) => {
+  if (mode !== 'ambient') return RND.randomFloat(0.5, 4.0);
 
   // white fill in ambient mode only looks good for small shapes
   return materialType === 'fill' ? RND.randomFloat(0.5, 0.75) : RND.randomFloat(0.5, 4.0);
@@ -51,12 +52,12 @@ const makeScale = ({ paletteName, materialType }) => {
 //   sharpEdges: false // rounded edges or not for things like triangle/etc
 // }
 
-const getRandomMaterialProps = ({ colors, paletteName }) => {
-  const { color, altColor } = pickColors(colors);
+const getRandomMaterialProps = (preset) => {
+  const { color, altColor } = pickColors(preset.colors);
 
   // Randomize the object and its materials
   const shapeType = RND.weighted(shapeTypes);
-  const materialType = RND.weighted(makeMaterialTypesWeights({ paletteName }));
+  const materialType = RND.weighted(makeMaterialTypesWeights(preset.mode));
   return { shapeType, materialType, altColor, color };
 };
 
@@ -64,9 +65,10 @@ module.exports = class MainScene extends THREE.Object3D {
   constructor(app) {
     super();
     this.app = app;
+    this.presetTweens = [];
+    this.tweens = [];
 
     const maxCapacity = 100;
-    this.activeCapacity = 30;
 
     this.poolContainer = new THREE.Group();
     this.add(this.poolContainer);
@@ -86,13 +88,21 @@ module.exports = class MainScene extends THREE.Object3D {
     this.pool.forEach(p => {
       p.visible = false;
       p.active = false;
+      p.onFinishMovement = noop;
     });
+    this.clearPresetTweens();
+  }
+
+  clearPresetTweens () {
+    this.presetTweens.forEach(p => p.pause());
+    this.presetTweens.length = 0;
   }
 
   start(opt = {}) {
+    this.clearPresetTweens();
+
     const app = this.app;
     const pool = this.pool;
-    console.log('starting', this.app.mode);
 
     const getRandomPosition = () => {
       const edges = [
@@ -119,7 +129,7 @@ module.exports = class MainScene extends THREE.Object3D {
 
     const findAvailableObject = () => {
       const activeCount = pool.filter(p => p.active).length;
-      if (activeCount >= this.activeCapacity) return;
+      if (activeCount >= this.app.preset.capacity) return;
 
       return RND.shuffle(pool).find(p => !p.active);
     };
@@ -130,27 +140,24 @@ module.exports = class MainScene extends THREE.Object3D {
 
       // No free meshes
       if (!object) return;
+      const preset = app.preset;
 
       // Now in scene, no longer in pool
       object.active = true;
       // But initially hidden until we animate in
       object.visible = false;
 
-      const materialProps = getRandomMaterialProps({
-        colors: app.colorPalette.colors,
-        paletteName: app.colorPalette.name
-      });
-
-      object.reset({ mode: app.mode }); // reset time properties
+      const materialProps = getRandomMaterialProps(preset);
+      object.reset({ mode: preset.mode }); // reset time properties
       object.randomize(materialProps); // reset color/etc
 
       // randomize position and scale
-      const scale = makeScale({ paletteName: app.colorPalette.name, materialType: materialProps.materialType });
+      const scale = makeScale({ mode: preset.mode, materialType: materialProps.materialType });
       // const scale = RND.weighted(scales)()
       object.scale.setScalar(scale * (1 / 3) * app.targetScale);
 
       let p = getRandomPosition();
-      if (app.mode === 'intro') {
+      if (preset.mode === 'intro') {
         const scalar = RND.randomFloat(0.5, 1);
         p.multiplyScalar(scalar);
       } else {
@@ -179,8 +186,8 @@ module.exports = class MainScene extends THREE.Object3D {
       };
 
       let animationDuration;
-      if (app.mode === 'ambient') animationDuration = RND.randomFloat(16000, 32000);
-      else if (app.mode === 'generative') animationDuration = RND.randomFloat(4000, 8000);
+      if (preset.mode === 'ambient') animationDuration = RND.randomFloat(16000, 32000);
+      else if (preset.mode === 'generative') animationDuration = RND.randomFloat(4000, 8000);
       else animationDuration = 3000;
 
       const durationMod = app.targetScale;
@@ -189,7 +196,7 @@ module.exports = class MainScene extends THREE.Object3D {
 
       // const newAngle = object.rotation.z + RND.randomFloat(-1, 1) * Math.PI * 2 * 0.25
       let defaultDelay;
-      if (app.mode === 'intro') {
+      if (preset.mode === 'intro') {
         defaultDelay = 0;
       } else {
         defaultDelay = RND.randomFloat(0, 8000);
@@ -208,9 +215,11 @@ module.exports = class MainScene extends THREE.Object3D {
         duration: animationDuration
       });
 
+      this.tweens.push(animIn);
       object.onFinishMovement = () => {
+        object.onFinishMovement = noop;
         animIn.pause();
-        anime({
+        const animOut = anime({
           targets: animation,
           update: updateAnimation,
           value: 0,
@@ -226,22 +235,86 @@ module.exports = class MainScene extends THREE.Object3D {
           easing: 'easeOutQuad',
           duration: animationDuration
         });
+        this.tweens.push(animOut);
       };
     };
 
-    if (app.mode === 'intro') {
-      next();
-    } else {
-      for (let i = 0; i < this.activeCapacity; i++) {
-        next();
-      }
-    }
-
     this.next = next;
+    this.emitInitial();
+  }
+
+  stop () {
+    this.tweens.forEach(t => t.pause());
+    this.tweens.length = 0;
+    this.clear();
+  }
+
+  emitInitial () {
+    // if (this.app.preset.mode === 'intro') {
+    //   this.next();
+    // } else {
+    for (let i = 0; i < this.app.preset.initialCapacity; i++) {
+      this.next();
+    }
+    // }
   }
 
   beat () {
     this.next();
+  }
+
+  trimCapacity () {
+    const active = this.pool.filter(p => p.active);
+    if (active.length <= this.app.preset.capacity) {
+      // Less than initial, let's fill things up
+      const remainder = Math.max(0, Math.min(this.app.preset.capacity, this.app.preset.initialCapacity - active.length));
+      for (let i = 0; i < remainder; i++) {
+        this.next();
+      }
+    } else {
+      const toKill = RND.shuffle(active).slice(this.app.preset.capacity);
+      toKill.forEach(k => k.onFinishMovement());
+    }
+  }
+
+  onPresetChanged (preset, oldPreset) {
+    // Preset has 'hard' changed, i.e. flash to new content
+    this.pool.forEach(shape => {
+      if (!shape.active) return;
+      const newProps = getRandomMaterialProps(preset);
+      shape.randomize(newProps);
+    });
+    this.stop();
+    this.emitInitial();
+  }
+
+  onPresetTransition (preset, oldPreset) {
+    // kill old tweens
+    this.clearPresetTweens();
+
+    // Transition colors to new features
+    this.pool.forEach(shape => {
+      if (!shape.active) return;
+      shape.resetSpeeds({ mode: preset.mode });
+      const newProps = getRandomMaterialProps(preset);
+
+      const oldColor = shape.mesh.material.uniforms.color.value.clone();
+      const newColor = newProps.color.clone();
+      const tween = { value: 0 };
+      const t = anime({
+        targets: tween,
+        duration: 5000,
+        value: 1,
+        update: () => {
+          const color = shape.mesh.material.uniforms.color.value;
+          color.copy(oldColor).lerp(newColor, tween.value);
+        }
+      });
+      this.presetTweens.push(t);
+    });
+
+    // Set new capacity without killing existing
+    this.trimCapacity();
   }
 
   onTrigger(event, args) {
@@ -254,14 +327,14 @@ module.exports = class MainScene extends THREE.Object3D {
       // this.poolContainer.children.sort((a, b) => {
       //   return a.renderOrder - b.renderOrder;
       // });
-      this.pool.forEach(shape => {
-        if (!shape.active) return;
-        const { color, shapeType, materialType, altColor } = getRandomMaterialProps({
-          colors: app.colorPalette.colors,
-          paletteName: app.colorPalette.name
-        });
-        shape.randomize({ color, shapeType, materialType, altColor });
-      })
+      // this.pool.forEach(shape => {
+      //   if (!shape.active) return;
+      //   const { color, shapeType, materialType, altColor } = getRandomMaterialProps({
+      //     colors: app.colorPalette.colors,
+      //     paletteName: app.colorPalette.name
+      //   });
+      //   shape.randomize({ color, shapeType, materialType, altColor });
+      // })
     } else if (event === 'palette') {
       // force shapes to animate out, this will call next() again, and make them re-appear with proper colors
       this.pool.forEach(shape => {
@@ -274,14 +347,12 @@ module.exports = class MainScene extends THREE.Object3D {
     } else if (event === 'start') {
       this.start();
     } else if (event === 'switchMode') {
-      if (this.app.mode === 'ambient') this.activeCapacity = 6;
-      else if (this.app.mode === 'intro') this.activeCapacity = 10;
-      else this.activeCapacity = 30;
+      
     } else if (event === 'colliderPosition') {
       this.textCollider.center.x = args.x;
       this.textCollider.center.y = args.y;
       if (args.radius) this.textCollider.radius = args.radius;
-    } else if (event === 'beat' && this.app.mode === 'intro') {
+    } else if (event === 'beat' && this.app.preset.mode === 'intro') {
       this.beat();
     }
   }
