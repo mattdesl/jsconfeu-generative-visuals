@@ -13,6 +13,7 @@ const presets = require('./scene/presets');
 const startIntroText = require('./util/introText');
 const query = require('./util/query');
 const createAudio = require('./util/createAudio');
+const noop = () => {};
 
 module.exports = createArtwork;
 
@@ -45,6 +46,7 @@ function createArtwork(canvas, params = {}) {
     camera,
     scene,
     canvas,
+    onFinishIntro: noop,
     intro: false,
     audio: createAudio(),
     audioSignal: [0, 0, 0],
@@ -83,6 +85,16 @@ function createArtwork(canvas, params = {}) {
     draw,
     isRunning() {
       return running;
+    },
+    onFadeOutIntro: () => {
+      traverse('onTrigger', 'fadeOut');
+      transitionBackground('#000', {
+        easing: 'linear',
+        duration: 2000
+      });
+      app.audio.fadeOut(() => {
+        api.onFinishIntro();
+      });
     },
     load() {
       return loadAssets({ renderer }).then(assets => {
@@ -160,9 +172,6 @@ function createArtwork(canvas, params = {}) {
       draw();
     },
     getPresets: () => presets,
-    fadeOut: () => {
-      app.audio.stop();
-    },
     triggerIntroSwap (ev) {
       traverse('onTrigger', 'introSwap', ev);
     },

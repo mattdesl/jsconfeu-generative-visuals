@@ -1,5 +1,6 @@
 const webAudioPlayer = require('web-audio-player');
 const analyserAverage = require('analyser-frequency-average');
+const noop = () => {};
 const smoothstep = require('smoothstep');
 const CircularBuffer = require('circular-buffer');
 const ease = require('eases/quad-in-out');
@@ -69,6 +70,16 @@ module.exports = function () {
     lowpass.frequency.setTargetAtTime(100, context.currentTime, 0.5);
     lowpass.frequency.setTargetAtTime(100, context.currentTime + 0.5, 0.5);
     lowpass.frequency.exponentialRampToValueAtTime(40000, context.currentTime + 3);
+  };
+
+  player.fadeOut = (cb = noop) => {
+    // lowpass.frequency.setTargetAtTime(100, context.currentTime, 0.5);
+    // lowpass.frequency.setTargetAtTime(100, context.currentTime + 0.5, 0.5);
+    lowpass.frequency.exponentialRampToValueAtTime(100, context.currentTime + 10);
+    player.node.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 10);
+    setTimeout(() => {
+      cb();
+    }, 5000);
   };
 
   player.updateFrequencies = () => {

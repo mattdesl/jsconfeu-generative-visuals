@@ -12,6 +12,10 @@ const artwork = createArtwork(canvas, {
   fullscreen: isFullscreen
 });
 
+artwork.onFinishIntro = () => {
+  artwork.transitionToPreset('default');
+};
+
 // Some time before start(), we need to set the initial size
 artwork.resize();
 

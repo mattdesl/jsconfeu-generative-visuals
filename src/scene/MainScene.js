@@ -69,6 +69,7 @@ module.exports = class MainScene extends THREE.Object3D {
     this.introTimer = 0;
     this.presetTweens = [];
     this.tweens = [];
+    this.running = true;
 
     const maxCapacity = 100;
 
@@ -132,6 +133,7 @@ module.exports = class MainScene extends THREE.Object3D {
   }
 
   next () {
+    if (!this.running) return;
     const app = this.app;
     const pool = this.pool;
 
@@ -241,6 +243,7 @@ module.exports = class MainScene extends THREE.Object3D {
   }
 
   start(opt = {}) {
+    this.running = true;
     this.clearPresetTweens();
 
     this.beats = this.app.audio.BEAT_TIMES.slice();
@@ -286,6 +289,7 @@ module.exports = class MainScene extends THREE.Object3D {
   }
 
   onPresetChanged (preset, oldPreset) {
+    this.running = true;
     // Preset has 'hard' changed, i.e. flash to new content
     this.pool.forEach(shape => {
       if (!shape.active) return;
@@ -297,6 +301,7 @@ module.exports = class MainScene extends THREE.Object3D {
   }
 
   onPresetTransition (preset, oldPreset) {
+    this.running = true;
     // kill old tweens
     this.clearPresetTweens();
 
@@ -327,7 +332,12 @@ module.exports = class MainScene extends THREE.Object3D {
 
   onTrigger(event, args) {
     const app = this.app;
-    if (event === 'introSwap') {
+    if (event === 'fadeOut') {
+      this.pool.forEach(s => {
+        if (s.active) s.onFinishMovement();
+      });
+      this.running = false;
+    } else if (event === 'introSwap') {
       
     } else if (event === 'randomize') {
       // this.pool.forEach(p => {
@@ -362,7 +372,7 @@ module.exports = class MainScene extends THREE.Object3D {
 
   update(time, dt) {
     this.introTimer += dt;
-    if (this.beats && this.app.intro && this.app.audio.playing) {
+    if (this.running && this.beats && this.app.intro && this.app.audio.playing) {
       const time = this.app.audio.element.currentTime;
       let hit = false;
       let isMajor = false;

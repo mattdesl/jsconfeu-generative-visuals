@@ -119,10 +119,7 @@ module.exports = function (api, params = {}) {
       .finished.then(() => {
         index++;
         if (index > texts.length - 1) {
-          console.log('finished');
-          setTimeout(() => {
-            api.fadeOut();
-          });
+          api.onFadeOutIntro();
         } else {
           next({ delay: 1000 });
         }

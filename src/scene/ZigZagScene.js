@@ -42,11 +42,17 @@ module.exports = class ZigZagScene extends THREE.Object3D {
   }
 
   start() {
+    this.running = true;
     this.pool.forEach(() => this.next());
   }
 
   onTrigger(event) {
-    if (event === 'randomize') {
+    if (event === 'fadeOut') {
+      this.running = false;
+      this.pool.forEach(s => {
+        s.transitionColor('#000');
+      });
+    } else if (event === 'randomize') {
       // recreate pool to get new random zigzags
       this.clear();
       this.start();
@@ -58,12 +64,13 @@ module.exports = class ZigZagScene extends THREE.Object3D {
   }
 
   onPresetChanged (preset, oldPreset) {
+    this.running = true;
     this.clear();
     this.start();
   }
 
   onPresetTransition (preset, oldPreset) {
-
+    this.running = true;
     // Transition colors to new features
     this.pool.forEach(shape => {
       if (!shape.active) return;
@@ -85,6 +92,7 @@ module.exports = class ZigZagScene extends THREE.Object3D {
   }
 
   next() {
+    if (!this.running) return;
     const { app, pool } = this;
 
     const getRandomPosition = () => {
