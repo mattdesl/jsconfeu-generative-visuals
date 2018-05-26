@@ -35,6 +35,7 @@ canvas {
   font-size: 1.75vmax;
   text-align: center;
   width: 30vw;
+  user-select: none;
   position: absolute;
 }
 

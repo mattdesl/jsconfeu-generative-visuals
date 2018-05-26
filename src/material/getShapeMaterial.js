@@ -45,6 +45,7 @@ module.exports = function (opt = {}) {
   shader.randomize = function (opt = {}) {
     if (!opt.assets) throw new Error('expected { assets } option for patterns');
 
+    const newValues = opt.newValues !== false;
     const materialType = opt.materialType;
     this.defines.HAS_AUDIO = defined(opt.audio, this.defines.HAS_AUDIO, false);
     this.defines.HAS_FILL = materialType === 'outline' || /fill/i.test(materialType);
@@ -69,7 +70,7 @@ module.exports = function (opt = {}) {
       bounds.max.y - bounds.min.y
     );
 
-    this.uniforms.randomOffset.value = RND.randomFloat(0, 1);
+    if (newValues) this.uniforms.randomOffset.value = RND.randomFloat(0, 1);
     if (opt.color) this.uniforms.color.value = opt.color;
     if (opt.altColor) this.uniforms.altColor.value = opt.altColor || opt.color;
     if (opt.centroid) this.uniforms.centroid.value.copy(opt.centroid);

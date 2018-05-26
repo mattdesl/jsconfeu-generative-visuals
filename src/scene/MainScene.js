@@ -34,6 +34,7 @@ const makeMaterialTypesWeights = (mode) => {
 };
 
 const makeScale = ({ mode, materialType }) => {
+  if (mode === 'intro') return RND.randomFloat(0.5, 2.5);
   if (mode !== 'ambient') return RND.randomFloat(0.5, 4.0);
 
   // white fill in ambient mode only looks good for small shapes
@@ -80,7 +81,7 @@ module.exports = class MainScene extends THREE.Object3D {
       return mesh;
     });
 
-    this.textCollider = colliderCircle({ radius: 1.75 });
+    this.textCollider = colliderCircle({ radius: 1.8 });
     if (this.textCollider.mesh) this.add(this.textCollider.mesh);
   }
 
@@ -160,8 +161,8 @@ module.exports = class MainScene extends THREE.Object3D {
 
     let p = this.getRandomPosition();
     if (preset.mode === 'intro') {
-      // const scalar = RND.randomFloat(0.5, 1);
-      // p.multiplyScalar(scalar);
+      const scalar = RND.randomFloat(0.85, 1);
+      p.multiplyScalar(scalar);
     } else {
     }
     object.position.set(p.x, p.y, 0);
@@ -385,7 +386,7 @@ module.exports = class MainScene extends THREE.Object3D {
             if (!shape.active) return;
             let { materialType, shapeType } = getRandomMaterialProps(this.app.preset);
             if (!isMajor) shapeType = undefined;
-            shape.randomize({ materialType, shapeType });
+            shape.randomize({ materialType, shapeType, newValues: false });
           });
         }
       }

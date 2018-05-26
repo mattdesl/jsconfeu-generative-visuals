@@ -174,9 +174,9 @@ class Rand {
 }
 
 // const initialSeed = getRandomSeed()
-const initialSeed = '68142'; // '42785'; // '86475' // 31144
+const initialSeed = '13'; // '42785'; // '86475' // 31144
 module.exports = new Rand(initialSeed);
-
+//8
 module.exports.createInstance = (seed, opt) => new Rand(seed, opt);
 module.exports.getRandomSeed = getRandomSeed;
 
