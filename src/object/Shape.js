@@ -139,18 +139,20 @@ module.exports = class Shape extends BaseObject {
     this.running = false;
     this.isInView = false;
     this.hasBeenSeen = false;
-
     this.resetSpeeds(opt);
   }
 
   resetSpeeds (opt = {}) {
+    let speedFactor = 1;
+    if (opt.mode === 'default') speedFactor = 2;
+    else if (opt.mode === 'intro') speedFactor = 5;
+
+    this.speed = RND.randomFloat(0.25, 0.5) * speedFactor;
     if (opt.mode === 'ambient') {
       this.duration = RND.randomFloat(10, 20) * 20;
-      this.speed = RND.randomFloat(0.25, 0.5) * 1;
       this.rotationSpeed = RND.randomSign() * RND.randomFloat(0.0005, 0.001) * 0.01;
     } else {
       this.duration = RND.randomFloat(10, 20);
-      this.speed = RND.randomFloat(0.25, 0.5) * 5;
       this.rotationSpeed = RND.randomSign() * RND.randomFloat(0.0005, 0.001);
     }
   }

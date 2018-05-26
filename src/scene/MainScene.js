@@ -20,21 +20,6 @@ const shapeTypes = [
   { weight: 10, value: 'svg-lightning' }
 ];
 
-const BEAT_LEAD_TIME = 0.15;
-const BEAT_TIMES = [
-  { time: 3.916 },
-  { time: 7.721 },
-  { time: 11.582 },
-  { time: 15.442 },
-  { time: 19.248 },
-  { time: 23.108 },
-  { time: 26.913 },
-  { time: 30.774 },
-  { time: 34.634 },
-  { time: 34.634 },
-  { time: 38.440, major: true },
-];
-
 // Other types:
 // 'squiggle', 'ring',
 // 'eye', 'feather', 'lightning', 'heart'
@@ -257,7 +242,7 @@ module.exports = class MainScene extends THREE.Object3D {
   start(opt = {}) {
     this.clearPresetTweens();
 
-    this.beats = BEAT_TIMES.slice();
+    this.beats = this.app.audio.BEAT_TIMES.slice();
 
     const app = this.app;
     const pool = this.pool;
@@ -384,7 +369,7 @@ module.exports = class MainScene extends THREE.Object3D {
         let indexToKill = -1;
         for (let i = 0; i < this.beats.length; i++) {
           const b = this.beats[i];
-          if (time > (b.time - BEAT_LEAD_TIME)) {
+          if (time > (b.time - this.app.audio.BEAT_LEAD_TIME)) {
             hit = true;
             isMajor = b.major;
             indexToKill = i;

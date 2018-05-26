@@ -25,6 +25,7 @@
     "glsl-pi": "^1.0.0",
     "glsl-random": "0.0.5",
     "keycode": "^2.2.0",
+    "lerp": "^1.0.3",
     "load-asset": "^1.2.0",
     "lodash.throttle": "^4.1.1",
     "new-array": "^1.0.0",

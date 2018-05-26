@@ -34,11 +34,18 @@ canvas {
 .canvas-text {
   font-size: 1.75vmax;
   text-align: center;
-  width: 25vw;
+  width: 30vw;
   position: absolute;
 }
 
 .canvas-text p {
   margin: 0;
   line-height: 1.5;
+}
+
+.text-chunk {
+  display: inline-block;
+  position: relative;
+  margin-right: 3px;
+  margin-left: 3px;
 }

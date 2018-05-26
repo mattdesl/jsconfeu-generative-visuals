@@ -12,6 +12,22 @@ const frequencyBins = [
   { start: 6000, end: 10000 }
 ];
 
+const BEAT_LEAD_TIME = 0.15;
+const BEAT_TIMES = [
+  { time: 3.916 },
+  { time: 7.721 },
+  { time: 11.582 },
+  { time: 15.442 },
+  { time: 19.248 },
+  { time: 23.108 },
+  { time: 26.913 },
+  { time: 30.774 },
+  { time: 34.634 },
+  { time: 34.634 },
+  { time: 38.440, major: true },
+];
+
+
 module.exports = function () {
   const context = new (window.AudioContext || window.webkitAudioContext)();
   const src = 'assets/audio/intro-short.mp3';
@@ -24,12 +40,17 @@ module.exports = function () {
   biquadFilter.type = 'lowpass';
   // biquadFilter.Q.setValueAtTime(10, context.currentTime);
   biquadFilter.frequency.setValueAtTime(500, context.currentTime);
-  // biquadFilter.gain.setValueAtTime(1, context.currentTime);
+  // biquadFilter.gain.setValueAtTime(1, context.currentTime)
 
   biquadFilter.connect(analyser);
   // biquadFilter.connect(context.destination);
 
-  player.node.connect(context.destination);
+  const lowpass = context.createBiquadFilter();
+  lowpass.type = 'lowpass';
+  lowpass.frequency.setValueAtTime(200, context.currentTime);
+  lowpass.connect(context.destination);
+
+  player.node.connect(lowpass);
   player.node.connect(biquadFilter);
 
   const freqs = new Uint8Array(analyser.fftSize);
@@ -40,6 +61,15 @@ module.exports = function () {
   const signalsRaw = bins.map(() => 0);
   const signalsAveraged = bins.map(() => 0);
   const averages = bins.map(() => new CircularBuffer(audioAverageCount));
+
+  player.BEAT_TIMES = BEAT_TIMES;
+  player.BEAT_LEAD_TIME = BEAT_LEAD_TIME;
+
+  player.fadeIn = () => {
+    lowpass.frequency.setTargetAtTime(100, context.currentTime, 0.5);
+    lowpass.frequency.setTargetAtTime(100, context.currentTime + 0.5, 0.5);
+    lowpass.frequency.exponentialRampToValueAtTime(40000, context.currentTime + 3);
+  };
 
   player.updateFrequencies = () => {
     analyser.getByteTimeDomainData(freqs);

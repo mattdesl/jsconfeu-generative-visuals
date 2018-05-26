@@ -212,6 +212,7 @@ function createArtwork(canvas, params = {}) {
 
   function startIntroSequence (opts = {}) {
     app.audio.play();
+    app.audio.fadeIn();
     startIntroText(api, opts);
   }
 

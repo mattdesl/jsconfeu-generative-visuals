@@ -1,5 +1,5 @@
 const anime = require('animejs');
-
+const lerp = require('lerp');
 module.exports = function (api, params = {}) {
   const container = document.querySelector('.canvas-text-container');
   const textEl = document.querySelector('.canvas-text');
@@ -17,26 +17,96 @@ module.exports = function (api, params = {}) {
 
   let index = 0;
 
+  function removeChildren (node) {
+    while (node.firstChild) {
+      node.removeChild(node.firstChild);
+    }
+  }
+
+  function buildText (el, text) {
+    const chunks = text.split(' ').map(str => {
+      const span = document.createElement('div');
+      span.className = 'text-chunk';
+      span.textContent = `${str} `;
+      return { element: span, text: str };
+    });
+    chunks.forEach(c => el.appendChild(c.element));
+    return chunks;
+  }
+
   function next (opt = {}) {
     const { delay = 0 } = opt;
     const item = texts[index];
     const curIndex = index;
     const nextItem = (index < texts.length - 1) ? texts[index + 1] : null;
-    textEl.textContent = item.text;
-    textEl.style.opacity = '0';
+    // textEl.textContent = item.text;
+    // textEl.style.opacity = '0';
+    
     textEl.style.color = api.getPresets()[item.preset].foreground;
+    removeChildren(textEl);
+    const chunks = buildText(textEl, item.text);
+    const spans = chunks.map(p => p.element);
+    const updateClip = (el, val) => {
+      // val = 1 - val;
+      // el.style.clipPath = `inset(0 ${Math.min(100, Math.round(val * 100))}% 0 0)`;
+    };
+    spans.forEach(s => {
+      s.style.opacity = '0';
+      updateClip(s, 0);
+      // s.style.transform = `translateY(-40px)`;
+    });
+
+    const stagger = 20;
+    const delayFn = (el, i) => {
+      return delay + i * stagger;
+    };
+    const delayFnOut = (el, i) => {
+      return 0 + i * stagger;
+    };
+    const easeAnimIn = [ .08,1.41,.55,1.01];
     anime.timeline()
       .add({
-        targets: textEl,
-        opacity: [0, 1],
-        delay,
-        duration: 3000,
-        easing: 'easeOutQuad'
+        targets: spans,
+        opacity: {
+          value: [0, 1],
+          delay: delayFn,
+          duration: 1000,
+          easing: 'easeOutQuad'
+        },
+        translateX: {
+          value: [-15, 0],
+          delay: delayFn,
+          duration: 3000,
+          easing: easeAnimIn
+        },
+        // skewY: {
+        //   value: [-5, 0],
+        //   delay: delayFn,
+        //   duration: 1000,
+        //   easing: 'easeOutExpo'
+        // },
+        update: (ev) => {
+          if (spans.length <= 0) return;
+          // spans.forEach(span => {
+            // const val = parseFloat(span.style.opacity);
+            // updateClip(span, val);
+          // });
+        }
       })
       .add({
-        targets: textEl,
-        opacity: 0,
-        delay: 1000,
+        targets: spans,
+        opacity: {
+          value: 0,
+          delay: delayFnOut,
+          duration: 2000,
+          easing: 'easeInExpo'
+        },
+        translateX: {
+          value: 15,
+          delay: delayFnOut,
+          duration: 2000,
+          easing: 'easeInExpo'
+        },
         begin: () => {
           if (nextItem) {
             setTimeout(() => {
@@ -44,10 +114,9 @@ module.exports = function (api, params = {}) {
               api.triggerIntroSwap({ index: curIndex, items: texts });
             }, 1750);
           }
-        },
-        duration: 2000,
-        easing: 'easeInQuad'
-      }).finished.then(() => {
+        }
+      })
+      .finished.then(() => {
         index++;
         if (index > texts.length - 1) {
           console.log('finished');

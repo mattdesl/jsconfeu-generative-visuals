@@ -115,8 +115,6 @@ module.exports = class ZigZagScene extends THREE.Object3D {
     const object = findAvailableObject();
     if (!object) return;
 
-    console.log('spawn', this.app.preset)
-
     object.active = true;
     object.visible = true;
     object.wasVisible = false;
