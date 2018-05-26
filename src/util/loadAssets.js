@@ -35,7 +35,6 @@ module.exports = function (opt = {}) {
 
   return load.any(
     {
-      audio: createAudio(),
       masks: load.any(maskFiles, err),
       tiles: load.any(tileFiles, err)
       // Can add other named assets here

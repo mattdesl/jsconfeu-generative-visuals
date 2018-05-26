@@ -19,6 +19,7 @@ module.exports = function (opt = {}) {
     depthTest: Boolean(opt.depthTest),
     depthWrite: Boolean(opt.depthWrite),
     uniforms: {
+      audioSignal: { value: new THREE.Vector3() },
       frame: { value: 0 },
       time: { value: 0 },
       animate: { value: 0 },
@@ -45,6 +46,7 @@ module.exports = function (opt = {}) {
     if (!opt.assets) throw new Error('expected { assets } option for patterns');
 
     const materialType = opt.materialType;
+    this.defines.HAS_AUDIO = defined(opt.audio, this.defines.HAS_AUDIO, false);
     this.defines.HAS_FILL = materialType === 'outline' || /fill/i.test(materialType);
     this.defines.HAS_TEXTURE_PATTERN = /texture-pattern/i.test(materialType);
     this.defines.HAS_SHADER_PATTERN = /shader-pattern/i.test(materialType);

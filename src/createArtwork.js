@@ -12,6 +12,7 @@ const throttle = require('lodash.throttle');
 const presets = require('./scene/presets');
 const startIntroText = require('./util/introText');
 const query = require('./util/query');
+const createAudio = require('./util/createAudio');
 
 module.exports = createArtwork;
 
@@ -44,6 +45,9 @@ function createArtwork(canvas, params = {}) {
     camera,
     scene,
     canvas,
+    intro: false,
+    audio: createAudio(),
+    audioSignal: [0, 0, 0],
     sceneBounds: new THREE.Box2(),
     unitScale: new THREE.Vector2(1, 1),
     // Holds props for visuals
@@ -73,10 +77,6 @@ function createArtwork(canvas, params = {}) {
   canvas.style.visibility = 'hidden';
   setPreset(initialPresetKey);
   draw();
-
-  const throttleBeat = throttle(() => {
-    traverse('onTrigger', 'beat');
-  }, 450);
 
   const api = {
     resize,
@@ -119,10 +119,11 @@ function createArtwork(canvas, params = {}) {
       // scene.background = new THREE.Color(scene.backgroundValue);
       // repeated code ends here
 
+      app.intro = opt.intro;
+
       if (!hasInit) {
         needsStart = true;
         createScene(scene);
-        draw();
         hasInit = true;
       }
 
@@ -131,11 +132,22 @@ function createArtwork(canvas, params = {}) {
         if (needsStart) {
           traverse('onTrigger', 'start', opt);
         }
-        if (opt.intro) setPreset('intro0');
-        if (opt.intro) startIntroSequence();
+        if (opt.intro) {
+          setPreset('intro0');
+          setBackground('#000');
+          transitionBackground(presets.intro0.background, {
+            easing: 'linear',
+            duration: 2000
+          });
+          startIntroSequence({
+            delay: 3000
+          });
+        }
       };
 
       if (opt.intro) {
+        setBackground('#000');
+        draw();
         if (autoplay) {
           runStart();
         } else {
@@ -144,12 +156,15 @@ function createArtwork(canvas, params = {}) {
       } else {
         runStart();
       }
+
+      draw();
     },
     getPresets: () => presets,
     fadeOut: () => {
-      if (app.assets && app.assets.audio) {
-        app.assets.audio.stop();
-      }
+      app.audio.stop();
+    },
+    triggerIntroSwap (ev) {
+      traverse('onTrigger', 'introSwap', ev);
     },
     clear,
     reset,
@@ -180,7 +195,7 @@ function createArtwork(canvas, params = {}) {
   window.api = api;
 
   return api;
-  
+
   function setupIntroClick (cb) {
     const text = document.querySelector('.canvas-text')
     if (text) text.textContent = 'Click to play';
@@ -195,11 +210,9 @@ function createArtwork(canvas, params = {}) {
     window.addEventListener('touchend', done);
   }
 
-  function startIntroSequence () {
-    if (app.assets && app.assets.audio) {
-      app.assets.audio.play();
-    }
-    startIntroText(api);
+  function startIntroSequence (opts = {}) {
+    app.audio.play();
+    startIntroText(api, opts);
   }
 
   function setBackground (color) {
@@ -215,27 +228,29 @@ function createArtwork(canvas, params = {}) {
     traverse('onPresetChanged', app.preset, oldPreset);
   }
 
-  function transitionToPreset (key) {
-    const newPreset = presets[key] || presets.default;
-    const oldPreset = Object.assign({}, app.preset);
-    app.preset = Object.assign({}, newPreset);
-
+  function transitionBackground (color, opt = {}) {
     if (backgroundAnimation) backgroundAnimation.pause();
     const oldColor = background.clone();
-    const newColor = new THREE.Color().set(app.preset.background);
+    const newColor = new THREE.Color().set(color);
     const tmpColor = new THREE.Color();
     const tween = { value: 0 };
     backgroundAnimation = anime({
       targets: tween,
       value: 1,
-      duration: 5000,
-      easing: [ .12,.93,.12,.93 ],
+      duration: defined(opt.duration, 5000),
+      easing: defined(opt.easing, [ .12,.93,.12,.93 ]),
       update: () => {
         tmpColor.copy(oldColor).lerp(newColor, tween.value);
         setBackground(tmpColor);
       }
     });
+  }
 
+  function transitionToPreset (key) {
+    const newPreset = presets[key] || presets.default;
+    const oldPreset = Object.assign({}, app.preset);
+    app.preset = Object.assign({}, newPreset);
+    transitionBackground(app.preset.background);
     traverse('onPresetTransition', app.preset, oldPreset);
   }
 
@@ -341,11 +356,8 @@ function createArtwork(canvas, params = {}) {
   function animate() {
     raf = window.requestAnimationFrame(animate);
 
-    if (app.mode === 'intro' && app.assets) {
-      app.audioSignal = app.assets.audio.updateFrequencies();
-      if (app.audioSignal > 0.65) {
-        throttleBeat();
-      }
+    if (app.audio.playing) {
+      app.audioSignal = app.audio.updateFrequencies();
     }
 
     const now = rightNow();

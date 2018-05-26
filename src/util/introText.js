@@ -1,6 +1,6 @@
 const anime = require('animejs');
 
-module.exports = function (api) {
+module.exports = function (api, params = {}) {
   const container = document.querySelector('.canvas-text-container');
   const textEl = document.querySelector('.canvas-text');
 
@@ -20,6 +20,7 @@ module.exports = function (api) {
   function next (opt = {}) {
     const { delay = 0 } = opt;
     const item = texts[index];
+    const curIndex = index;
     const nextItem = (index < texts.length - 1) ? texts[index + 1] : null;
     textEl.textContent = item.text;
     textEl.style.opacity = '0';
@@ -40,6 +41,7 @@ module.exports = function (api) {
           if (nextItem) {
             setTimeout(() => {
               api.transitionToPreset(nextItem.preset);
+              api.triggerIntroSwap({ index: curIndex, items: texts });
             }, 1750);
           }
         },
@@ -59,7 +61,8 @@ module.exports = function (api) {
   }
 
   index = 0;
-  next();
+  
+  next(params);
 
   // var basicTimeline = anime.timeline();
   // basicTimeline

@@ -25,6 +25,11 @@ module.exports = {
     foreground: '#ffffff',
     colors: ['#FFFFFF']
   },
+  introIdle: {
+    ...defaultIntroSettings,
+    background: '#000',
+    colors: ['#000']
+  },
   intro0: {
     ...defaultIntroSettings,
     background: '#313F61',

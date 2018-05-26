@@ -20,6 +20,21 @@ const shapeTypes = [
   { weight: 10, value: 'svg-lightning' }
 ];
 
+const BEAT_LEAD_TIME = 0.15;
+const BEAT_TIMES = [
+  { time: 3.916 },
+  { time: 7.721 },
+  { time: 11.582 },
+  { time: 15.442 },
+  { time: 19.248 },
+  { time: 23.108 },
+  { time: 26.913 },
+  { time: 30.774 },
+  { time: 34.634 },
+  { time: 34.634 },
+  { time: 38.440, major: true },
+];
+
 // Other types:
 // 'squiggle', 'ring',
 // 'eye', 'feather', 'lightning', 'heart'
@@ -65,6 +80,7 @@ module.exports = class MainScene extends THREE.Object3D {
   constructor(app) {
     super();
     this.app = app;
+    this.introTimer = 0;
     this.presetTweens = [];
     this.tweens = [];
 
@@ -98,146 +114,154 @@ module.exports = class MainScene extends THREE.Object3D {
     this.presetTweens.length = 0;
   }
 
-  start(opt = {}) {
-    this.clearPresetTweens();
+  getRandomPosition () {
+    const app = this.app;
+    const edges = [
+      [new THREE.Vector2(-1, -1), new THREE.Vector2(1, -1)],
+      [new THREE.Vector2(1, -1), new THREE.Vector2(1, 1)],
+      [new THREE.Vector2(1, 1), new THREE.Vector2(-1, 1)],
+      [new THREE.Vector2(-1, 1), new THREE.Vector2(-1, -1)]
+    ];
+    const edgeIndex = RND.randomInt(edges.length);
+    const isTopOrBottom = edgeIndex === 0 || edgeIndex === 2;
+    const edge = edges[edgeIndex];
+    // const t = RND.randomFloat(0, 1)
+    const t = isTopOrBottom
+      ? RND.randomBoolean()
+        ? RND.randomFloat(0.0, 0.35)
+        : RND.randomFloat(0.65, 1)
+      : RND.randomFloat(0, 1);
+    const vec = edge[0].clone().lerp(edge[1], t);
+    vec.x *= RND.randomFloat(1.0, 1.2);
+    vec.y *= RND.randomFloat(1.0, 1.25);
+    vec.multiply(app.unitScale);
+    return vec;
+  }
 
+  findAvailableObject () {
+    const pool = this.pool;
+    const activeCount = pool.filter(p => p.active).length;
+    if (activeCount >= this.app.preset.capacity) return;
+    return RND.shuffle(pool).find(p => !p.active);
+  }
+
+  next () {
     const app = this.app;
     const pool = this.pool;
 
-    const getRandomPosition = () => {
-      const edges = [
-        [new THREE.Vector2(-1, -1), new THREE.Vector2(1, -1)],
-        [new THREE.Vector2(1, -1), new THREE.Vector2(1, 1)],
-        [new THREE.Vector2(1, 1), new THREE.Vector2(-1, 1)],
-        [new THREE.Vector2(-1, 1), new THREE.Vector2(-1, -1)]
-      ];
-      const edgeIndex = RND.randomInt(edges.length);
-      const isTopOrBottom = edgeIndex === 0 || edgeIndex === 2;
-      const edge = edges[edgeIndex];
-      // const t = RND.randomFloat(0, 1)
-      const t = isTopOrBottom
-        ? RND.randomBoolean()
-          ? RND.randomFloat(0.0, 0.35)
-          : RND.randomFloat(0.65, 1)
-        : RND.randomFloat(0, 1);
-      const vec = edge[0].clone().lerp(edge[1], t);
-      vec.x *= RND.randomFloat(1.0, 1.2);
-      vec.y *= RND.randomFloat(1.0, 1.25);
-      vec.multiply(app.unitScale);
-      return vec;
-    };
+    // Get unused mesh
+    const object = this.findAvailableObject();
 
-    const findAvailableObject = () => {
-      const activeCount = pool.filter(p => p.active).length;
-      if (activeCount >= this.app.preset.capacity) return;
+    // No free meshes
+    if (!object) return;
+    const preset = app.preset;
 
-      return RND.shuffle(pool).find(p => !p.active);
-    };
+    // Now in scene, no longer in pool
+    object.active = true;
+    // But initially hidden until we animate in
+    object.visible = false;
 
-    const next = (params = {}) => {
-      // Get unused mesh
-      const object = findAvailableObject();
+    const materialProps = getRandomMaterialProps(preset);
+    object.reset({ mode: preset.mode }); // reset time properties
+    object.randomize({
+      audio: this.app.intro,
+      ...materialProps
+    }); // reset color/etc
 
-      // No free meshes
-      if (!object) return;
-      const preset = app.preset;
+    // randomize position and scale
+    const scale = makeScale({ mode: preset.mode, materialType: materialProps.materialType });
+    // const scale = RND.weighted(scales)()
+    object.scale.setScalar(scale * (1 / 3) * app.targetScale);
 
-      // Now in scene, no longer in pool
-      object.active = true;
-      // But initially hidden until we animate in
-      object.visible = false;
+    let p = this.getRandomPosition();
+    if (preset.mode === 'intro') {
+      // const scalar = RND.randomFloat(0.5, 1);
+      // p.multiplyScalar(scalar);
+    } else {
+    }
+    object.position.set(p.x, p.y, 0);
 
-      const materialProps = getRandomMaterialProps(preset);
-      object.reset({ mode: preset.mode }); // reset time properties
-      object.randomize(materialProps); // reset color/etc
+    const randomDirection = new THREE.Vector2().fromArray(RND.randomCircle([], 1));
 
-      // randomize position and scale
-      const scale = makeScale({ mode: preset.mode, materialType: materialProps.materialType });
-      // const scale = RND.weighted(scales)()
-      object.scale.setScalar(scale * (1 / 3) * app.targetScale);
+    // const randomLength = RND.randomFloat(0.25, 5);
+    // randomDirection.y /= app.unitScale.x;
+    // other.addScaledVector(randomDirection, 1);
+    // other.addScaledVector(randomDirection, randomLength);
 
-      let p = getRandomPosition();
-      if (preset.mode === 'intro') {
-        // const scalar = RND.randomFloat(0.5, 1);
-        // p.multiplyScalar(scalar);
-      } else {
-      }
-      object.position.set(p.x, p.y, 0);
+    const heading = object.position
+      .clone()
+      .normalize()
+      .negate();
+    const rotStrength = RND.randomFloat(0, 1);
+    heading.addScaledVector(randomDirection, rotStrength).normalize();
 
-      const randomDirection = new THREE.Vector2().fromArray(RND.randomCircle([], 1));
-
-      // const randomLength = RND.randomFloat(0.25, 5);
-      // randomDirection.y /= app.unitScale.x;
-      // other.addScaledVector(randomDirection, 1);
-      // other.addScaledVector(randomDirection, randomLength);
-
-      const heading = object.position
-        .clone()
-        .normalize()
-        .negate();
-      const rotStrength = RND.randomFloat(0, 1);
-      heading.addScaledVector(randomDirection, rotStrength).normalize();
-
-      // start at zero
-      const animation = { value: 0 };
+    // start at zero
+    const animation = { value: 0 };
+    object.setAnimation(animation.value);
+    const updateAnimation = () => {
       object.setAnimation(animation.value);
-      const updateAnimation = () => {
-        object.setAnimation(animation.value);
-      };
+    };
 
-      let animationDuration;
-      if (preset.mode === 'ambient') animationDuration = RND.randomFloat(16000, 32000);
-      else if (preset.mode === 'intro') animationDuration = RND.randomFloat(4000, 8000);
-      else animationDuration = RND.randomFloat(4000, 8000);
+    let animationDuration;
+    if (preset.mode === 'ambient') animationDuration = RND.randomFloat(16000, 32000);
+    else if (preset.mode === 'intro') animationDuration = RND.randomFloat(4000, 8000);
+    else animationDuration = RND.randomFloat(4000, 8000);
 
-      const durationMod = app.targetScale;
-      object.velocity.setScalar(0);
-      object.velocity.addScaledVector(heading, 0.001 * durationMod);
+    const durationMod = app.targetScale;
+    object.velocity.setScalar(0);
+    object.velocity.addScaledVector(heading, 0.001 * durationMod);
 
-      // const newAngle = object.rotation.z + RND.randomFloat(-1, 1) * Math.PI * 2 * 0.25
-      let defaultDelay = RND.randomFloat(0, 8000);
-      if (preset.mode === 'intro') {
-        defaultDelay = RND.randomFloat(0, 500);
-      }
-      let startDelay = defined(params.startDelay, defaultDelay);
-      const animIn = anime({
+    // const newAngle = object.rotation.z + RND.randomFloat(-1, 1) * Math.PI * 2 * 0.25
+    let defaultDelay = RND.randomFloat(0, 8000);
+    if (preset.mode === 'intro') {
+      defaultDelay = RND.randomFloat(0, 8000);
+    }
+    let startDelay = defaultDelay;
+    const animIn = anime({
+      targets: animation,
+      value: 1,
+      update: updateAnimation,
+      easing: 'easeOutExpo',
+      delay: startDelay,
+      begin: () => {
+        object.running = true;
+        object.visible = true;
+      },
+      duration: animationDuration
+    });
+
+    this.tweens.push(animIn);
+    object.onFinishMovement = () => {
+      object.onFinishMovement = noop;
+      animIn.pause();
+      const animOut = anime({
         targets: animation,
-        value: 1,
         update: updateAnimation,
-        easing: 'easeOutExpo',
-        delay: startDelay,
-        begin: () => {
-          object.running = true;
-          object.visible = true;
+        value: 0,
+        complete: () => {
+          // Hide completely
+          object.onFinishMovement = null;
+          object.visible = false;
+          object.running = false;
+          // Place back in pool for re-use
+          object.active = false;
+          this.next();
         },
+        easing: 'easeOutQuad',
         duration: animationDuration
       });
-
-      this.tweens.push(animIn);
-      object.onFinishMovement = () => {
-        object.onFinishMovement = noop;
-        animIn.pause();
-        const animOut = anime({
-          targets: animation,
-          update: updateAnimation,
-          value: 0,
-          complete: () => {
-            // Hide completely
-            object.onFinishMovement = null;
-            object.visible = false;
-            object.running = false;
-            // Place back in pool for re-use
-            object.active = false;
-            next();
-          },
-          easing: 'easeOutQuad',
-          duration: animationDuration
-        });
-        this.tweens.push(animOut);
-      };
+      this.tweens.push(animOut);
     };
+  }
 
-    this.next = next;
+  start(opt = {}) {
+    this.clearPresetTweens();
+
+    this.beats = BEAT_TIMES.slice();
+
+    const app = this.app;
+    const pool = this.pool;
+    this.introTimer = 0;
     this.emitInitial();
   }
 
@@ -317,7 +341,9 @@ module.exports = class MainScene extends THREE.Object3D {
 
   onTrigger(event, args) {
     const app = this.app;
-    if (event === 'randomize') {
+    if (event === 'introSwap') {
+      
+    } else if (event === 'randomize') {
       // this.pool.forEach(p => {
       //   p.renderOrder = RND.randomInt(-10, 10);
       // });
@@ -325,14 +351,7 @@ module.exports = class MainScene extends THREE.Object3D {
       // this.poolContainer.children.sort((a, b) => {
       //   return a.renderOrder - b.renderOrder;
       // });
-      // this.pool.forEach(shape => {
-      //   if (!shape.active) return;
-      //   const { color, shapeType, materialType, altColor } = getRandomMaterialProps({
-      //     colors: app.colorPalette.colors,
-      //     paletteName: app.colorPalette.name
-      //   });
-      //   shape.randomize({ color, shapeType, materialType, altColor });
-      // })
+      
     } else if (event === 'palette') {
       // force shapes to animate out, this will call next() again, and make them re-appear with proper colors
       this.pool.forEach(shape => {
@@ -356,6 +375,37 @@ module.exports = class MainScene extends THREE.Object3D {
   }
 
   update(time, dt) {
+    this.introTimer += dt;
+    if (this.beats && this.app.intro && this.app.audio.playing) {
+      const time = this.app.audio.element.currentTime;
+      let hit = false;
+      let isMajor = false;
+      if (isFinite(time)) {
+        let indexToKill = -1;
+        for (let i = 0; i < this.beats.length; i++) {
+          const b = this.beats[i];
+          if (time > (b.time - BEAT_LEAD_TIME)) {
+            hit = true;
+            isMajor = b.major;
+            indexToKill = i;
+            break;
+          }
+        }
+        if (indexToKill !== -1) {
+          this.beats = this.beats.slice(indexToKill + 1);
+        }
+
+        if (hit) {
+          this.pool.forEach(shape => {
+            if (!shape.active) return;
+            let { materialType, shapeType } = getRandomMaterialProps(this.app.preset);
+            if (!isMajor) shapeType = undefined;
+            shape.randomize({ materialType, shapeType });
+          });
+        }
+      }
+    }
+
     this.textCollider.update();
 
     const tmpVec2 = new THREE.Vector2();
@@ -363,6 +413,8 @@ module.exports = class MainScene extends THREE.Object3D {
 
     this.pool.forEach(shape => {
       if (!shape.active || !shape.running) return;
+
+      shape.mesh.material.uniforms.audioSignal.value.fromArray(this.app.audioSignal);
 
       const a = shape.collisionArea.getWorldSphere(shape);
       const b = this.textCollider.getWorldSphere(this);
