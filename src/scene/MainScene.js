@@ -290,6 +290,7 @@ module.exports = class MainScene extends THREE.Object3D {
 
   onPresetChanged (preset, oldPreset) {
     this.running = true;
+    console.log('changed')
     // Preset has 'hard' changed, i.e. flash to new content
     this.pool.forEach(shape => {
       if (!shape.active) return;
@@ -392,6 +393,7 @@ module.exports = class MainScene extends THREE.Object3D {
         }
 
         if (hit) {
+          console.log('hit')
           this.pool.forEach(shape => {
             if (!shape.active) return;
             let { materialType, shapeType } = getRandomMaterialProps(this.app.preset);

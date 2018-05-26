@@ -16,9 +16,9 @@ module.exports = function getCircularBlob (opt = {}) {
   const rotation = RND.randomFloat(-1, 1) * Math.PI * 2;
   let width, height;
 
-  const minDim = 0.25;
+  const minDim = 0.5;
   const maxDim = 1.0;
-  const dimScale = RND.randomFloat(0.25, 1.5);
+  const dimScale = RND.randomFloat(0.5, 1.5);
   width = RND.randomFloat(minDim, maxDim);
   height = RND.randomFloat(minDim, maxDim);
 

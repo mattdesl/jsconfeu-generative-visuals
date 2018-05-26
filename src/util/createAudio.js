@@ -24,7 +24,6 @@ const BEAT_TIMES = [
   { time: 26.913 },
   { time: 30.774 },
   { time: 34.634 },
-  { time: 34.634 },
   { time: 38.440, major: true },
 ];
 
