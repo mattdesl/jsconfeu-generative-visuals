@@ -9,7 +9,7 @@ module.exports = function (api, params = {}) {
     { preset: 'intro1', text: 'A JSConf International production' },
     { preset: 'intro2', text: 'In cooperation with wwwtf.berlin' },
     { preset: 'intro3', text: 'And supported by the Chrome team' },
-    { preset: 'intro4', text: 'Live.js Network' },
+    { preset: 'intro4', text: '{ live: js } Network' },
     { preset: 'intro5', text: 'Nested Loops' },
     { preset: 'intro6', text: 'Curated by Feli, Holger, Jan, Malte, Megan & Simone' },
     { preset: 'default', text: 'Welcome to JSConf EU 2018' }

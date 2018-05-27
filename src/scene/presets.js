@@ -11,8 +11,8 @@ module.exports = {
     mode: 'generative',
     background: '#FBF9F3',
     foreground: '#304061',
-    capacity: 30,
-    initialCapacity: 30,
+    capacity: 35,
+    initialCapacity: 35,
     zigZagCapacity: 5,
     colors: ['#313F61', '#DF1378', '#0C2AD9', '#FEC3BE', '#DDE4F0', '#7A899C']
   },

@@ -127,7 +127,7 @@ module.exports = class ZigZagScene extends THREE.Object3D {
     object.visible = true;
     object.wasVisible = false;
 
-    const lineWidth = RND.randomFloat(0.04, 0.08);
+    const lineWidth = RND.randomFloat(0.04, 0.08) * 1;
 
     const scale = RND.randomFloat(0.2, 0.5);
     object.scale.setScalar(scale * app.targetScale);
@@ -139,7 +139,7 @@ module.exports = class ZigZagScene extends THREE.Object3D {
     const angle = Math.atan2(position.y - target[1], position.x - target[0]) + Math.PI / 2;
     object.rotation.z = angle;
 
-    const delay = RND.randomFloat(0, 5);
+    const delay = RND.randomFloat(0, 20);
     const speed = RND.randomFloat(0.75, 1.75);
 
     const { color } = pickColors(this.app.preset.colors);

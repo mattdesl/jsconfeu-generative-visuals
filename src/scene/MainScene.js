@@ -20,25 +20,33 @@ const shapeTypes = [
   { weight: 10, value: 'svg-lightning' }
 ];
 
+const strokeShapesToAllow = ['square', 'rectangle-blob', 'svg-heart'];
+
 // Other types:
 // 'squiggle', 'ring',
 // 'eye', 'feather', 'lightning', 'heart'
 
-const makeMaterialTypesWeights = (mode) => {
+const makeMaterialTypesWeights = (mode, opt = {}) => {
   return [
     { weight: mode === 'ambient' ? 5 : 100, value: 'fill' },
-    { weight: 50, value: 'texture-pattern' }
+    { weight: mode === 'intro' ? 120 : 50, value: 'texture-pattern' },
+    // opt.stroke !== false ? { weight: mode === 'intro' ? 12 : 12, value: 'stroke' } : false
     // { weight: 50, value: 'shader-pattern' }
     // { weight: 25, value: 'fill-texture-pattern' }
-  ];
+  ].filter(Boolean).filter(t => {
+    if (opt.currentMaterialType) {
+      return t.value !== opt.currentMaterialType;
+    }
+    return true;
+  });
 };
 
 const makeScale = ({ mode, materialType }) => {
-  if (mode === 'intro') return RND.randomFloat(0.5, 2.5);
-  if (mode !== 'ambient') return RND.randomFloat(0.5, 4.0);
-
+  return materialType === 'fill' ? RND.randomFloat(0.5, 2) : RND.randomFloat(0.5, 2.5);
+  // if (mode === 'intro') return RND.randomFloat(0.5, 2.5);
+  // if (mode !== 'ambient') return RND.randomFloat(0.5, 2);
   // white fill in ambient mode only looks good for small shapes
-  return materialType === 'fill' ? RND.randomFloat(0.5, 0.75) : RND.randomFloat(0.5, 4.0);
+  // return materialType === 'fill' ? RND.randomFloat(0.5, 0.75) : RND.randomFloat(0.5, 4.0);
 };
 
 // const scales = [
@@ -53,12 +61,25 @@ const makeScale = ({ mode, materialType }) => {
 //   sharpEdges: false // rounded edges or not for things like triangle/etc
 // }
 
-const getRandomMaterialProps = (preset) => {
+const getRandomMaterialProps = (preset, opt = {}) => {
   const { color, altColor } = pickColors(preset.colors);
 
   // Randomize the object and its materials
-  const shapeType = RND.weighted(shapeTypes);
-  const materialType = RND.weighted(makeMaterialTypesWeights(preset.mode));
+  const materialType = RND.weighted(makeMaterialTypesWeights(preset.mode, opt));
+
+  let computedShapeTypes = shapeTypes;
+  if (materialType === 'stroke') {
+    computedShapeTypes = computedShapeTypes.filter(t => {
+      return strokeShapesToAllow.includes(t.value);
+    });
+  }
+  computedShapeTypes = computedShapeTypes.filter(t => {
+    if (opt.currentShapeType) {
+      return t.value !== opt.currentShapeType;
+    }
+    return true;
+  });
+  const shapeType = RND.weighted(computedShapeTypes);
   return { shapeType, materialType, altColor, color };
 };
 
@@ -144,28 +165,40 @@ module.exports = class MainScene extends THREE.Object3D {
     if (!object) return;
     const preset = app.preset;
 
+    const materialProps = getRandomMaterialProps(preset);
+    object.reset({ mode: preset.mode }); // reset time properties
+
+    const result = object.randomize({
+      audio: this.app.intro,
+      ...materialProps
+    }); // reset color/etc
+
+    if (!result) return;
+
     // Now in scene, no longer in pool
     object.active = true;
     // But initially hidden until we animate in
     object.visible = false;
 
-    const materialProps = getRandomMaterialProps(preset);
-    object.reset({ mode: preset.mode }); // reset time properties
-    object.randomize({
-      audio: this.app.intro,
-      ...materialProps
-    }); // reset color/etc
-
     // randomize position and scale
-    const scale = makeScale({ mode: preset.mode, materialType: materialProps.materialType });
+    let scale = makeScale({ mode: preset.mode, materialType: materialProps.materialType });
+    if (materialProps.materialType === 'stroke') {
+      scale = RND.randomFloat(0.75, 1.25);
+    }
+    // if (preset.mode === 'intro') {
+    //   scale *= RND.randomFloat(0.75, 1);
+    // }
     // const scale = RND.weighted(scales)()
     object.scale.setScalar(scale * (1 / 3) * app.targetScale);
 
     let p = this.getRandomPosition();
-    if (preset.mode === 'intro') {
-      const scalar = RND.randomFloat(0.85, 1);
+    // if (preset.mode === 'intro') {
+      const scalar = RND.randomFloat(0.75, 1.01);
       p.multiplyScalar(scalar);
-    } else {
+    // }
+
+    if (materialProps.materialType === 'stroke') {
+      p.multiplyScalar(RND.randomFloat(0.5, 1));
     }
     object.position.set(p.x, p.y, 0);
 
@@ -191,7 +224,7 @@ module.exports = class MainScene extends THREE.Object3D {
     };
 
     let animationDuration;
-    if (preset.mode === 'ambient') animationDuration = RND.randomFloat(16000, 32000);
+    if (preset.mode === 'ambient') animationDuration = RND.randomFloat(16000, 16000 * 3);
     else if (preset.mode === 'intro') animationDuration = RND.randomFloat(4000, 8000);
     else animationDuration = RND.randomFloat(4000, 8000);
 
@@ -200,7 +233,7 @@ module.exports = class MainScene extends THREE.Object3D {
     object.velocity.addScaledVector(heading, 0.001 * durationMod);
 
     // const newAngle = object.rotation.z + RND.randomFloat(-1, 1) * Math.PI * 2 * 0.25
-    let defaultDelay = RND.randomFloat(0, 8000);
+    let defaultDelay = RND.randomFloat(0, 16000);
     if (preset.mode === 'intro') {
       defaultDelay = RND.randomFloat(0, 8000);
     }
@@ -308,7 +341,7 @@ module.exports = class MainScene extends THREE.Object3D {
 
     // Transition colors to new features
     this.pool.forEach(shape => {
-      if (!shape.active) return;
+      if (!shape.active || !shape.mesh.material.uniforms) return;
       shape.resetSpeeds({ mode: preset.mode });
       const newProps = getRandomMaterialProps(preset);
 
@@ -393,10 +426,13 @@ module.exports = class MainScene extends THREE.Object3D {
         }
 
         if (hit) {
-          console.log('hit')
           this.pool.forEach(shape => {
-            if (!shape.active) return;
-            let { materialType, shapeType } = getRandomMaterialProps(this.app.preset);
+            if (!shape.active || shape.materialType === 'stroke') return;
+            let { materialType, shapeType } = getRandomMaterialProps(this.app.preset, {
+              stroke: false,
+              currentShapeType: shape.shapeType,
+              currentMaterialType: shape.materialType
+            });
             if (!isMajor) shapeType = undefined;
             shape.randomize({ materialType, shapeType, newValues: false });
           });
@@ -412,7 +448,9 @@ module.exports = class MainScene extends THREE.Object3D {
     this.pool.forEach(shape => {
       if (!shape.active || !shape.running) return;
 
-      shape.mesh.material.uniforms.audioSignal.value.fromArray(this.app.audioSignal);
+      if (shape.mesh.material.uniforms) {
+        shape.mesh.material.uniforms.audioSignal.value.fromArray(this.app.audioSignal);
+      }
 
       const a = shape.collisionArea.getWorldSphere(shape);
       const b = this.textCollider.getWorldSphere(this);

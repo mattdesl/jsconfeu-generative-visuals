@@ -10,6 +10,7 @@ const getBlob = require('../geometry/getBlob');
 const getSVGShape = require('../geometry/getSVGShape');
 const getShapeMaterial = require('../material/getShapeMaterial');
 const circleIntersectsBox = require('../util/circleIntersectBox');
+const strokePolygon = require('../util/strokePolygon');
 
 const getCentroid = path => {
   return path
@@ -65,11 +66,12 @@ module.exports = class Shape extends BaseObject {
     this.materialType = opt.materialType || this.materialType;
 
     const shapeType = this.shapeType;
-    const materialType = this.materialType;
+    let materialType = this.materialType;
 
     let centroid;
+    let highFrequencyMotion = true;
 
-    if (shapeType !== prevShapeType) {
+    if (shapeType !== prevShapeType || materialType === 'stroke') {
       // get a new list of points
       let points;
       let svg;
@@ -92,27 +94,24 @@ module.exports = class Shape extends BaseObject {
       // get centroid of polygon
       centroid = getCentroid(points);
 
+      const isStroke = materialType === 'stroke';
       // generate the new (triangulated) geometry data
-      if (svg) {
+      if (isStroke) {
+        highFrequencyMotion = false;
+        svg = false;
+        // const finalCount = RND.randomInt(100, 200);
+        // const resampled = resampleLineByCount(points, finalCount, true);
+        points = this._roundPoints(points, shapeType, materialType);
+        const thickness = RND.randomFloat(0.025, 0.075);
+        const { positions, cells } = strokePolygon(points, {
+          thickness
+        });
+        points = positions.map(p => new THREE.Vector2().fromArray(p));
+        this.mesh.geometry.setComplex(points, cells);
+      } else if (svg) {
         this.mesh.geometry.setComplex(svg.positions, svg.cells);
       } else {
-        // If we should 'round' the points with splines
-        const round = shapeType !== 'circle';
-        if (round) {
-          const minTension = shapeType === 'rectangle-blob' ? 0 : 0.1;
-          const maxTension = shapeType === 'rectangle-blob' ? 1 : 0.25;
-          const roundTension = RND.randomBoolean() ? minTension : RND.randomFloat(minTension, maxTension);
-          const roundType = shapeType === 'circle-blob' ? 'chordal' : 'catmullrom';
-          const roundSegments = shapeType === 'circle-blob' ? 30 : 40;
-          const curve = new THREE.CatmullRomCurve3(points.map(p => new THREE.Vector3(p.x, p.y, 0)));
-          curve.closed = true;
-          curve.tension = roundTension;
-          curve.curveType = roundType;
-          points = curve
-            .getSpacedPoints(roundSegments)
-            .slice(0, roundSegments)
-            .map(p => new THREE.Vector2(p.x, p.y));
-        }
+        points = this._roundPoints(points, shapeType, materialType);
 
         // resample along the path so we can add high frequency noise to give it rough edges in vert shader
         const finalCount = RND.randomInt(200, 600);
@@ -125,12 +124,38 @@ module.exports = class Shape extends BaseObject {
     if (this.mesh.material.randomize) {
       this.mesh.material.randomize({
         ...opt,
+        highFrequencyMotion,
         centroid,
-        materialType,
+        materialType: this.materialType === 'stroke' ? 'fill' : this.materialType,
         bounds: this.mesh.geometry.getBounds2D(),
         assets: this.app.assets
       });
     }
+
+    return true;
+  }
+
+  _roundPoints (points, shapeType, materialType) {
+    // If we should 'round' the points with splines
+    const round = shapeType !== 'circle';
+    if (round) {
+      const minTension = shapeType === 'rectangle-blob' ? 0 : 0.1;
+      const maxTension = shapeType === 'rectangle-blob' ? 1 : 0.25;
+      let roundTension = RND.randomBoolean() ? minTension : RND.randomFloat(minTension, maxTension);
+      if (materialType === 'stroke') roundTension = 0.15;
+      const roundType = shapeType === 'circle-blob' ? 'chordal' : 'catmullrom';
+      let roundSegments = shapeType === 'circle-blob' ? 30 : 40;
+      if (materialType === 'stroke') roundSegments = 40;
+      const curve = new THREE.CatmullRomCurve3(points.map(p => new THREE.Vector3(p.x, p.y, 0)));
+      curve.closed = true;
+      curve.tension = roundTension;
+      curve.curveType = roundType;
+      points = curve
+        .getSpacedPoints(roundSegments)
+        .slice(0, roundSegments)
+        .map(p => new THREE.Vector2(p.x, p.y));
+    }
+    return points;
   }
 
   reset (opt = {}) {
@@ -144,7 +169,7 @@ module.exports = class Shape extends BaseObject {
 
   resetSpeeds (opt = {}) {
     let speedFactor = 1;
-    if (opt.mode === 'default') speedFactor = 2;
+    if (opt.mode === 'default') speedFactor = 4;
     else if (opt.mode === 'intro') speedFactor = 5;
 
     this.speed = RND.randomFloat(0.25, 0.5) * speedFactor;

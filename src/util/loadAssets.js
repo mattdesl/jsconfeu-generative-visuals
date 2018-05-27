@@ -35,6 +35,7 @@ module.exports = function (opt = {}) {
 
   return load.any(
     {
+      // audioFile: { url: 'assets/audio/intro-short.mp3' },
       masks: load.any(maskFiles, err),
       tiles: load.any(tileFiles, err)
       // Can add other named assets here

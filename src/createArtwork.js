@@ -234,6 +234,7 @@ function createArtwork(canvas, params = {}) {
     const newPreset = presets[key] || presets.default;
     const oldPreset = Object.assign({}, app.preset);
     app.preset = Object.assign({}, newPreset);
+    app.presetKey = key;
     setBackground(app.preset.background);
     traverse('onPresetChanged', app.preset, oldPreset);
   }
@@ -260,6 +261,7 @@ function createArtwork(canvas, params = {}) {
     const newPreset = presets[key] || presets.default;
     const oldPreset = Object.assign({}, app.preset);
     app.preset = Object.assign({}, newPreset);
+    app.presetKey = key;
     transitionBackground(app.preset.background);
     traverse('onPresetTransition', app.preset, oldPreset);
   }
@@ -403,7 +405,7 @@ function createArtwork(canvas, params = {}) {
   }
 
   function createScene(scene) {
-    scene.add(new ZigZagScene(app));
+    // scene.add(new ZigZagScene(app));
     scene.add(new MainScene(app));
   }
 }

@@ -38,7 +38,8 @@ module.exports = class Polygon extends THREE.BufferGeometry {
 
   // Pass an already-triangulated polygon
   setComplex(points, cells) {
-    buffer.attr(this, 'position', points.map(p => (Array.isArray(p) ? p : p.toArray().slice(0, 2))), 2);
+    if (points.length > 0 && !points[0].toArray) throw new Error('must specify vector to setComplex');
+    buffer.attr(this, 'position', points.map(p => p.toArray().slice(0, 2)), 2);
     buffer.index(this, cells);
 
     this.updateRandoms(points);
@@ -51,6 +52,7 @@ module.exports = class Polygon extends THREE.BufferGeometry {
 
   // Triangulate a polygon
   setPoints (points) {
+    if (points.length > 0 && !points[0].toArray) throw new Error('must specify vector to setPoints');
     const array = flatten(points);
     const indices = earcut(array);
     buffer.attr(this, 'position', array, 2);

@@ -51,6 +51,7 @@ module.exports = function (opt = {}) {
     this.defines.HAS_FILL = materialType === 'outline' || /fill/i.test(materialType);
     this.defines.HAS_TEXTURE_PATTERN = /texture-pattern/i.test(materialType);
     this.defines.HAS_SHADER_PATTERN = /shader-pattern/i.test(materialType);
+    this.defines.HIGH_FREQ_MOTION = defined(opt.highFrequencyMotion, this.defines.HIGH_FREQ_MOTION, true);
 
     const { tiles, masks } = opt.assets;
     const map = tiles[RND.randomInt(0, tiles.length)];
