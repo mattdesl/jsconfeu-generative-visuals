@@ -29,7 +29,7 @@ const strokeShapesToAllow = ['square', 'rectangle-blob', 'svg-heart'];
 const makeMaterialTypesWeights = (mode, opt = {}) => {
   return [
     { weight: mode === 'ambient' ? 5 : 100, value: 'fill' },
-    { weight: mode === 'intro' ? 120 : 50, value: 'texture-pattern' },
+    { weight: mode === 'intro' ? 200 : 50, value: 'texture-pattern' },
     // opt.stroke !== false ? { weight: mode === 'intro' ? 12 : 12, value: 'stroke' } : false
     // { weight: 50, value: 'shader-pattern' }
     // { weight: 25, value: 'fill-texture-pattern' }
@@ -42,7 +42,10 @@ const makeMaterialTypesWeights = (mode, opt = {}) => {
 };
 
 const makeScale = ({ mode, materialType }) => {
-  return materialType === 'fill' ? RND.randomFloat(0.5, 2) : RND.randomFloat(0.5, 2.5);
+  if (RND.randomFloat(1) > 0.75) return RND.randomFloat(0.5, 2.5);
+  return RND.randomFloat(0.5, 2.0);
+  // return mode === 'intro' ? RND.randomFloat(0.5, 2) : RND.randomFloat(0.5, 2.75);
+  // return materialType === 'fill' ? RND.randomFloat(0.5, 2) : RND.randomFloat(0.5, 2.5);
   // if (mode === 'intro') return RND.randomFloat(0.5, 2.5);
   // if (mode !== 'ambient') return RND.randomFloat(0.5, 2);
   // white fill in ambient mode only looks good for small shapes
@@ -140,8 +143,8 @@ module.exports = class MainScene extends THREE.Object3D {
         : RND.randomFloat(0.65, 1)
       : RND.randomFloat(0, 1);
     const vec = edge[0].clone().lerp(edge[1], t);
-    vec.x *= RND.randomFloat(1.0, 1.2);
-    vec.y *= RND.randomFloat(1.0, 1.25);
+    // vec.x *= RND.randomFloat(1.0, 1.2);
+    // vec.y *= RND.randomFloat(1.0, 1.25);
     vec.multiply(app.unitScale);
     return vec;
   }
@@ -174,6 +177,7 @@ module.exports = class MainScene extends THREE.Object3D {
     }); // reset color/etc
 
     if (!result) return;
+    console.log('spawn')
 
     // Now in scene, no longer in pool
     object.active = true;
@@ -192,10 +196,8 @@ module.exports = class MainScene extends THREE.Object3D {
     object.scale.setScalar(scale * (1 / 3) * app.targetScale);
 
     let p = this.getRandomPosition();
-    // if (preset.mode === 'intro') {
-      const scalar = RND.randomFloat(0.75, 1.01);
-      p.multiplyScalar(scalar);
-    // }
+    const scalar = RND.randomFloat(0.85, 1.0);
+    p.multiplyScalar(scalar);
 
     if (materialProps.materialType === 'stroke') {
       p.multiplyScalar(RND.randomFloat(0.5, 1));
@@ -224,7 +226,7 @@ module.exports = class MainScene extends THREE.Object3D {
     };
 
     let animationDuration;
-    if (preset.mode === 'ambient') animationDuration = RND.randomFloat(16000, 16000 * 3);
+    if (preset.mode === 'ambient') animationDuration = RND.randomFloat(16000, 16000 * 2);
     else if (preset.mode === 'intro') animationDuration = RND.randomFloat(4000, 8000);
     else animationDuration = RND.randomFloat(4000, 8000);
 
@@ -235,7 +237,7 @@ module.exports = class MainScene extends THREE.Object3D {
     // const newAngle = object.rotation.z + RND.randomFloat(-1, 1) * Math.PI * 2 * 0.25
     let defaultDelay = RND.randomFloat(0, 16000);
     if (preset.mode === 'intro') {
-      defaultDelay = RND.randomFloat(0, 8000);
+      defaultDelay = RND.randomFloat(0, 16000);
     }
     let startDelay = defaultDelay;
     const animIn = anime({

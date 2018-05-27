@@ -121,7 +121,7 @@ function createArtwork(canvas, params = {}) {
       // // different mode
       // app.mode = opt.mode;
 
-      // if (app.mode === 'generative') {
+      // if (app.mode === 'default') {
       //   app.colorPalette = colorPalettes.light;
       // } else if (app.mode === 'ambient') {
       //   app.colorPalette = colorPalettes.ambient;

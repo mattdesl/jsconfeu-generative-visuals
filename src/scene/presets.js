@@ -1,14 +1,14 @@
 const defaultIntroSettings = {
   foreground: '#FFFFFF',
   mode: 'intro',
-  capacity: 20,
-  initialCapacity: 20,
+  capacity: 25,
+  initialCapacity: 25,
   zigZagCapacity: 0
 };
 
 module.exports = {
   default: {
-    mode: 'generative',
+    mode: 'default',
     background: '#FBF9F3',
     foreground: '#304061',
     capacity: 35,

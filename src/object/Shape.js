@@ -169,15 +169,15 @@ module.exports = class Shape extends BaseObject {
 
   resetSpeeds (opt = {}) {
     let speedFactor = 1;
-    if (opt.mode === 'default') speedFactor = 4;
+    if (opt.mode === 'default') speedFactor = 2;
     else if (opt.mode === 'intro') speedFactor = 5;
 
     this.speed = RND.randomFloat(0.25, 0.5) * speedFactor;
     if (opt.mode === 'ambient') {
-      this.duration = RND.randomFloat(10, 20) * 20;
+      this.duration = RND.randomFloat(30, 60);
       this.rotationSpeed = RND.randomSign() * RND.randomFloat(0.0005, 0.001) * 0.01;
     } else {
-      this.duration = RND.randomFloat(10, 20);
+      this.duration = opt.mode === 'intro' ? RND.randomFloat(2, 8) : RND.randomFloat(10, 20);
       this.rotationSpeed = RND.randomSign() * RND.randomFloat(0.0005, 0.001);
     }
   }

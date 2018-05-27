@@ -68,7 +68,7 @@ module.exports = function () {
   player.fadeIn = () => {
     lowpass.frequency.setTargetAtTime(100, context.currentTime, 0.5);
     lowpass.frequency.setTargetAtTime(100, context.currentTime + 0.5, 0.5);
-    lowpass.frequency.exponentialRampToValueAtTime(40000, context.currentTime + 3);
+    lowpass.frequency.exponentialRampToValueAtTime(20000, context.currentTime + 3);
   };
 
   player.fadeOut = (cb = noop) => {
