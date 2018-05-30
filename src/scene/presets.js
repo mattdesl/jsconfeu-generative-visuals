@@ -1,20 +1,29 @@
 const defaultIntroSettings = {
   foreground: '#FFFFFF',
   mode: 'intro',
-  capacity: 25,
-  initialCapacity: 25,
+  capacity: 45,
+  initialCapacity: 30,
   zigZagCapacity: 0
 };
 
 module.exports = {
   default: {
     mode: 'default',
-    background: '#FBF9F3',
+    background: '#f3ecda',
     foreground: '#304061',
     capacity: 35,
     initialCapacity: 35,
     zigZagCapacity: 5,
-    colors: ['#313F61', '#DF1378', '#0C2AD9', '#FEC3BE', '#DDE4F0', '#7A899C']
+    colors: [
+      { weight: 100, value: '#e10079' },
+      { weight: 100, value: '#6058c5' },
+      { weight: 100, value: '#ffc4bc' },
+      { weight: 50, value: '#dde4f2' },
+      { weight: 50, value: '#051add' },
+      { weight: 50, value: '#303f62' }
+    ]
+    // All colors equal:
+    // colors: ['#313F61', '#DF1378', '#0C2AD9', '#FEC3BE', '#DDE4F0', '#7A899C']
   },
   ambient: {
     mode: 'ambient',
@@ -32,8 +41,14 @@ module.exports = {
   },
   intro0: {
     ...defaultIntroSettings,
-    background: '#313F61',
-    colors: ['#DF1378', '#0C2AD9', '#FEC3BE', '#DDE4F0', '#7A899C']
+    background: '#303f62',
+    colors: [
+      { weight: 100, value: '#0C2AD9' },
+      { weight: 100, value: '#6058c5' },
+      { weight: 100, value: '#DF1378' },
+      { weight: 50, value: '#FEC3BE' },
+      { weight: 25, value: '#7A899C' },
+    ]
   },
   intro1: {
     ...defaultIntroSettings,
@@ -57,15 +72,11 @@ module.exports = {
   },
   intro5: {
     ...defaultIntroSettings,
-    capacity: 25,
-    initialCapacity: 25,
     background: '#605BC2',
     colors: ['#FFFFFF']
   },
   intro6: {
     ...defaultIntroSettings,
-    capacity: 30,
-    initialCapacity: 30,
     background: '#DF1379',
     colors: ['#FFFFFF']
   }

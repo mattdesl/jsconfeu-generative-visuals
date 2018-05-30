@@ -13,10 +13,25 @@ const getColor = colorStyle => {
   return color;
 };
 
-module.exports = function (colors) {
-  const palette = colors[RND.randomInt(colors.length)];
+const isColor = color => {
+  return typeof color === 'string' || (color && color.isColor);
+};
+
+module.exports = function (colors, entityType) {
+  let palette;
+
+  const hasWeights = colors.some(c => !isColor(c));
+  let filteredColors = colors;
+  if (hasWeights && entityType && colors.some(c => typeof c[entityType] !== 'undefined')) {
+    filteredColors = colors.filter(c => c[entityType]);
+  }
+
+  palette = hasWeights
+    ? RND.weighted(filteredColors)
+    : filteredColors[RND.randomInt(filteredColors.length)];
+
   const color = getColor(palette);
-  const altPalette = RND.shuffle(colors).find(c => c !== palette);
+  const altPalette = RND.shuffle(filteredColors).find(c => c !== palette);
   const altColor = getColor(altPalette);
   return { color, altColor };
 }

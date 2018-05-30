@@ -42,8 +42,12 @@ const makeMaterialTypesWeights = (mode, opt = {}) => {
 };
 
 const makeScale = ({ mode, materialType }) => {
-  if (RND.randomFloat(1) > 0.75) return RND.randomFloat(0.5, 2.5);
-  return RND.randomFloat(0.5, 2.0);
+  return RND.weighted([
+    { weight: 100, value: RND.randomFloat(1, 2.5) },
+    { weight: 50, value: RND.randomFloat(0.5, 3) }
+  ]);
+  // if (RND.randomFloat(1) > 0.75) return RND.randomFloat(0.5, 3);
+  // return RND.randomFloat(0.5, 3.0);
   // return mode === 'intro' ? RND.randomFloat(0.5, 2) : RND.randomFloat(0.5, 2.75);
   // return materialType === 'fill' ? RND.randomFloat(0.5, 2) : RND.randomFloat(0.5, 2.5);
   // if (mode === 'intro') return RND.randomFloat(0.5, 2.5);
@@ -65,10 +69,10 @@ const makeScale = ({ mode, materialType }) => {
 // }
 
 const getRandomMaterialProps = (preset, opt = {}) => {
-  const { color, altColor } = pickColors(preset.colors);
-
   // Randomize the object and its materials
   const materialType = RND.weighted(makeMaterialTypesWeights(preset.mode, opt));
+
+  const { color, altColor } = pickColors(preset.colors, materialType === 'texture-pattern' ? 'pattern' : 'shape');
 
   let computedShapeTypes = shapeTypes;
   if (materialType === 'stroke') {
@@ -90,6 +94,7 @@ module.exports = class MainScene extends THREE.Object3D {
   constructor(app) {
     super();
     this.app = app;
+    window.test = this;
     this.introTimer = 0;
     this.presetTweens = [];
     this.tweens = [];
@@ -99,9 +104,11 @@ module.exports = class MainScene extends THREE.Object3D {
 
     this.poolContainer = new THREE.Group();
     this.add(this.poolContainer);
-    this.pool = newArray(maxCapacity).map(() => {
+    this.pool = newArray(maxCapacity).map((_, i) => {
       const mesh = new Shape(app);
       mesh.visible = false;
+      mesh.poolIndex = i;
+      mesh.sortOrder = 0;
       this.poolContainer.add(mesh);
       return mesh;
     });
@@ -149,6 +156,45 @@ module.exports = class MainScene extends THREE.Object3D {
     return vec;
   }
 
+  getComputedRandomPosition () {
+    const count = 20;
+
+    const spheres = this.pool.filter(p => p.active).map(shape => {
+      return shape.collisionArea.getWorldSphere(shape);
+    });
+
+    const radius = 0.35;
+    const positions = newArray(count).map(() => {
+      const position = this.getRandomPosition();
+      
+      let collisions = 0;
+      for (let i = 0; i < spheres.length; i++) {
+        const sphere = spheres[i];
+        const sumRadii = sphere.radius * radius;
+        const deltaSq = position.distanceToSquared(sphere.center)
+        if (deltaSq <= (sumRadii * sumRadii)) {
+          collisions++;
+        }
+      }
+      return {
+        position,
+        collisions
+      };
+    });
+
+    // Flip between spawning shapes clustered near other shapes, and sometimes
+    // away from other shapes. But more frequently we want sparseness
+    const dense = RND.randomFloat(1) > 0.5;
+    if (dense) positions.sort((a, b) => b.collisions - a.collisions);
+    else positions.sort((a, b) => a.collisions - b.collisions);
+
+    return positions[0].position.multiplyScalar(RND.randomFloat(0.75, 1.15));
+
+    // const scalar = RND.randomFloat(0.85, 1.0);
+    // p.multiplyScalar(scalar);
+
+  }
+
   findAvailableObject () {
     const pool = this.pool;
     const activeCount = pool.filter(p => p.active).length;
@@ -177,7 +223,6 @@ module.exports = class MainScene extends THREE.Object3D {
     }); // reset color/etc
 
     if (!result) return;
-    console.log('spawn')
 
     // Now in scene, no longer in pool
     object.active = true;
@@ -195,16 +240,24 @@ module.exports = class MainScene extends THREE.Object3D {
     // const scale = RND.weighted(scales)()
     object.scale.setScalar(scale * (1 / 3) * app.targetScale);
 
-    let p = this.getRandomPosition();
-    const scalar = RND.randomFloat(0.85, 1.0);
-    p.multiplyScalar(scalar);
+    let sortWeight = 0;
+    if (/pattern/i.test(materialProps.materialType)) {
+      sortWeight += RND.randomFloat(0.75, 1);
+    }
+    sortWeight += 1 - clamp(object.scale.x / 2, 0, 1);
+    object.sortOrder = Math.round(this.app.preset.capacity * Math.min(1, sortWeight));
 
+    let p = this.getComputedRandomPosition();
+    
     if (materialProps.materialType === 'stroke') {
       p.multiplyScalar(RND.randomFloat(0.5, 1));
     }
     object.position.set(p.x, p.y, 0);
 
-    const randomDirection = new THREE.Vector2().fromArray(RND.randomCircle([], 1));
+    let randomDirection;
+    const moveTowardCenter = RND.randomFloat(1) > 0.85;
+    if (moveTowardCenter) randomDirection = p.clone().normalize().negate();
+    else randomDirection = new THREE.Vector2().fromArray(RND.randomCircle([], 1));
 
     // const randomLength = RND.randomFloat(0.25, 5);
     // randomDirection.y /= app.unitScale.x;
@@ -237,7 +290,7 @@ module.exports = class MainScene extends THREE.Object3D {
     // const newAngle = object.rotation.z + RND.randomFloat(-1, 1) * Math.PI * 2 * 0.25
     let defaultDelay = RND.randomFloat(0, 16000);
     if (preset.mode === 'intro') {
-      defaultDelay = RND.randomFloat(0, 16000);
+      defaultDelay = RND.randomFloat(0, 10000);
     }
     let startDelay = defaultDelay;
     const animIn = anime({
@@ -277,6 +330,17 @@ module.exports = class MainScene extends THREE.Object3D {
     };
   }
 
+  sortObjects () {
+    this.poolContainer.children.sort((a, b) => {
+      if (a.sortOrder === b.sortOrder) return a.poolIndex - b.poolIndex;
+      return a.sortOrder - b.sortOrder;
+    });
+  }
+
+  sortObject (object) {
+    const curIdx = this.poolContainer.indexOf(object);
+  }
+
   start(opt = {}) {
     this.running = true;
     this.clearPresetTweens();
@@ -302,6 +366,9 @@ module.exports = class MainScene extends THREE.Object3D {
     for (let i = 0; i < this.app.preset.initialCapacity; i++) {
       this.next();
     }
+
+    // sort initially....
+    this.sortObjects();
     // }
   }
 
@@ -380,9 +447,6 @@ module.exports = class MainScene extends THREE.Object3D {
       //   p.renderOrder = RND.randomInt(-10, 10);
       // });
       // console.log('sort');
-      // this.poolContainer.children.sort((a, b) => {
-      //   return a.renderOrder - b.renderOrder;
-      // });
       
     } else if (event === 'palette') {
       // force shapes to animate out, this will call next() again, and make them re-appear with proper colors
