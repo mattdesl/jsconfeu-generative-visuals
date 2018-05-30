@@ -163,14 +163,16 @@ module.exports = class MainScene extends THREE.Object3D {
       return shape.collisionArea.getWorldSphere(shape);
     });
 
+    let hitText = false;
     const radius = 0.5;
+    const textSphere = this.textCollider.getWorldSphere(this);
     const positions = newArray(count).map(() => {
       const position = this.getRandomPosition();
       
       let collisions = 0;
       for (let i = 0; i < spheres.length; i++) {
         const sphere = spheres[i];
-        const sumRadii = sphere.radius * radius;
+        const sumRadii = sphere.radius + radius;
         const deltaSq = position.distanceToSquared(sphere.center)
         if (deltaSq <= (sumRadii * sumRadii)) {
           collisions++;
@@ -178,21 +180,33 @@ module.exports = class MainScene extends THREE.Object3D {
       }
       return {
         position,
+        hitText,
         collisions
       };
     });
 
     // Flip between spawning shapes clustered near other shapes, and sometimes
     // away from other shapes. But more frequently we want sparseness
-    const dense = RND.randomFloat(1) > 0.95;
+    // const dense = false;
+    const dense = RND.randomFloat(1) > 0.85;
     if (dense) positions.sort((a, b) => b.collisions - a.collisions);
     else positions.sort((a, b) => a.collisions - b.collisions);
 
-    return positions[0].position.multiplyScalar(RND.randomFloat(0.75, 1.15));
+    const p = positions[0].position.multiplyScalar(RND.randomFloat(0.8, 1.2));
+
+    // ensure it doesn't spawn right in center
+    const deltaTxtSq = p.distanceToSquared(textSphere.center);
+    const collisionRadius = 0.85;
+    const sumTxtRadii = collisionRadius + textSphere.radius;
+    if (deltaTxtSq <= (sumTxtRadii * sumTxtRadii)) {
+      // push the shape away from center text radius a bit...
+      const dir = p.clone().normalize();
+      p.addScaledVector(dir, textSphere.radius);
+    }
 
     // const scalar = RND.randomFloat(0.85, 1.0);
     // p.multiplyScalar(scalar);
-
+    return p;
   }
 
   findAvailableObject () {
@@ -255,7 +269,7 @@ module.exports = class MainScene extends THREE.Object3D {
     object.position.set(p.x, p.y, 0);
 
     let randomDirection;
-    const moveTowardCenter = RND.randomFloat(1) > 0.85;
+    const moveTowardCenter = preset.mode !== 'intro' && RND.randomFloat(1) > 0.9;
     if (moveTowardCenter) randomDirection = p.clone().normalize().negate();
     else randomDirection = new THREE.Vector2().fromArray(RND.randomCircle([], 1));
 
@@ -511,6 +525,7 @@ module.exports = class MainScene extends THREE.Object3D {
     const tmpVec2 = new THREE.Vector2();
     const tmpVec3 = new THREE.Vector3();
 
+    const b = this.textCollider.getWorldSphere(this);
     this.pool.forEach(shape => {
       if (!shape.active || !shape.running) return;
 
@@ -519,7 +534,6 @@ module.exports = class MainScene extends THREE.Object3D {
       }
 
       const a = shape.collisionArea.getWorldSphere(shape);
-      const b = this.textCollider.getWorldSphere(this);
 
       const size = shape.scale.x / this.app.targetScale * 3;
 

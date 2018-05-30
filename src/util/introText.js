@@ -11,8 +11,8 @@ module.exports = function (api, params = {}) {
     { preset: 'intro3', text: 'And supported by the Chrome team' },
     { preset: 'intro4', text: '{ live: js } Network' },
     { preset: 'intro5', text: 'Nested Loops' },
-    { preset: 'intro6', text: 'Curated by Feli, Holger, Jan, Malte, Megan & Simone' },
-    { preset: 'default', text: 'Welcome to JSConf EU 2018' }
+    { preset: 'default', text: 'Curated by Feli, Holger, Jan, Malte, Megan & Simone' },
+    { text: 'Welcome to JSConf EU 2018' }
   ];
 
   let index = 0;
@@ -42,7 +42,7 @@ module.exports = function (api, params = {}) {
     // textEl.textContent = item.text;
     // textEl.style.opacity = '0';
     
-    textEl.style.color = api.getPresets()[item.preset].foreground;
+    if (item.preset) textEl.style.color = api.getPresets()[item.preset].foreground;
     removeChildren(textEl);
     const chunks = buildText(textEl, item.text);
     const spans = chunks.map(p => p.element);
@@ -110,7 +110,7 @@ module.exports = function (api, params = {}) {
         begin: () => {
           if (nextItem) {
             setTimeout(() => {
-              api.transitionToPreset(nextItem.preset);
+              if (nextItem.preset) api.transitionToPreset(nextItem.preset);
               api.triggerIntroSwap({ index: curIndex, items: texts });
             }, 1750);
           }
