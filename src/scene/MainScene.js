@@ -43,7 +43,7 @@ const makeMaterialTypesWeights = (mode, opt = {}) => {
 
 const makeScale = ({ mode, materialType }) => {
   return RND.weighted([
-    { weight: 100, value: RND.randomFloat(1, 2.5) },
+    { weight: 100, value: RND.randomFloat(0.5, 2.5) },
     { weight: 50, value: RND.randomFloat(0.5, 3) }
   ]);
   // if (RND.randomFloat(1) > 0.75) return RND.randomFloat(0.5, 3);
@@ -163,7 +163,7 @@ module.exports = class MainScene extends THREE.Object3D {
       return shape.collisionArea.getWorldSphere(shape);
     });
 
-    const radius = 0.35;
+    const radius = 0.5;
     const positions = newArray(count).map(() => {
       const position = this.getRandomPosition();
       
@@ -184,7 +184,7 @@ module.exports = class MainScene extends THREE.Object3D {
 
     // Flip between spawning shapes clustered near other shapes, and sometimes
     // away from other shapes. But more frequently we want sparseness
-    const dense = RND.randomFloat(1) > 0.5;
+    const dense = RND.randomFloat(1) > 0.95;
     if (dense) positions.sort((a, b) => b.collisions - a.collisions);
     else positions.sort((a, b) => a.collisions - b.collisions);
 
@@ -288,7 +288,7 @@ module.exports = class MainScene extends THREE.Object3D {
     object.velocity.addScaledVector(heading, 0.001 * durationMod);
 
     // const newAngle = object.rotation.z + RND.randomFloat(-1, 1) * Math.PI * 2 * 0.25
-    let defaultDelay = RND.randomFloat(0, 16000);
+    let defaultDelay = RND.randomFloat(0, 11000);
     if (preset.mode === 'intro') {
       defaultDelay = RND.randomFloat(0, 10000);
     }
