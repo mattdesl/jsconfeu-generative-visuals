@@ -406,7 +406,7 @@ function createArtwork(canvas, params = {}) {
 
   function createScene(scene) {
     // temporarily disabled, it can be a bit distracting in generative/default mode
-    // scene.add(new ZigZagScene(app));
+    scene.add(new ZigZagScene(app));
     scene.add(new MainScene(app));
   }
 }

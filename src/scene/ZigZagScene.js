@@ -18,7 +18,7 @@ module.exports = class ZigZagScene extends THREE.Object3D {
   }
 
   createPool() {
-    const maxCapacity = 5;
+    const maxCapacity = 6;
     this.pool = newArray(maxCapacity).map(() => {
       const mesh = new ZigZag(this.app, {
         segments: RND.randomInt(100, 200)
@@ -63,13 +63,13 @@ module.exports = class ZigZagScene extends THREE.Object3D {
     }
   }
 
-  onPresetChanged (preset, oldPreset) {
+  onPresetChanged(preset, oldPreset) {
     this.running = true;
     this.clear();
     this.start();
   }
 
-  onPresetTransition (preset, oldPreset) {
+  onPresetTransition(preset, oldPreset) {
     this.running = true;
     // Transition colors to new features
     this.pool.forEach(shape => {
@@ -83,7 +83,7 @@ module.exports = class ZigZagScene extends THREE.Object3D {
     // TODO: Could animate out shapes here if capacity is less than current?
   }
 
-  trimCapacity () {
+  trimCapacity() {
     const active = this.pool.filter(p => p.active);
     const capacity = this.app.preset.zigZagCapacity;
     if (active.length <= capacity) return; // less than max
@@ -127,7 +127,7 @@ module.exports = class ZigZagScene extends THREE.Object3D {
     object.visible = true;
     object.wasVisible = false;
 
-    const lineWidth = RND.randomFloat(0.04, 0.08) * 1;
+    const lineWidth = RND.randomFloat(0.02, 0.05) * 1;
 
     const scale = RND.randomFloat(0.2, 0.5);
     object.scale.setScalar(scale * app.targetScale);
@@ -171,7 +171,7 @@ module.exports = class ZigZagScene extends THREE.Object3D {
         .add(position2d)
         .rotateAround(position2d, p.rotation.z);
 
-      const isOutside = (!tmpView.containsPoint(head) && !tmpView.containsPoint(tail));
+      const isOutside = !tmpView.containsPoint(head) && !tmpView.containsPoint(tail);
       p.isOutside = isOutside;
 
       if (isOutside) {
