@@ -66,8 +66,6 @@ module.exports = function(api, params = {}) {
 
     const chunks = buildText(textEl, item.text, bigTextEl, item.bigText);
 
-    console.log({ chunks })
-
     const spans = chunks.map(p => p.element);
     const updateClip = (el, val) => {
       // val = 1 - val;

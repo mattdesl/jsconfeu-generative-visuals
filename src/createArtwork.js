@@ -8,12 +8,12 @@ const anime = require('animejs');
 const RND = require('./util/random');
 const ZigZagScene = require('./scene/ZigZagScene');
 const tmpVec3 = new THREE.Vector3();
-const throttle = require('lodash.throttle');
 const presets = require('./scene/presets');
 const startIntroText = require('./util/introText');
 const query = require('./util/query');
 const createAudio = require('./util/createAudio');
 const noop = () => {};
+const CSS = require('./assets/CSS.js');
 
 module.exports = createArtwork;
 
@@ -68,6 +68,7 @@ function createArtwork(canvas, params = {}) {
   let hasResized = false;
   let stoppedAnimations = [];
   let backgroundAnimation;
+  let styleEl;
 
   // scene.backgroundValue = app.colorPalette.background;
   // scene.background = new THREE.Color(scene.backgroundValue);
@@ -94,6 +95,9 @@ function createArtwork(canvas, params = {}) {
       });
       app.audio.fadeOut(() => {
         api.onFinishIntro();
+        if (styleEl) {
+          document.getElementsByTagName('head')[0].removeChild(styleEl);
+        }
       });
     },
     load() {
@@ -157,7 +161,19 @@ function createArtwork(canvas, params = {}) {
         }
       };
 
+      const setupCSS = () => {
+        const style = document.createElement('style');
+        style.type = 'text/css';
+        style.innerHTML = CSS;
+
+        document.getElementsByTagName('head')[0].appendChild(style);
+
+        return style;
+      };
+
       if (opt.intro) {
+        styleEl = setupCSS();
+
         setBackground('#000');
         draw();
         if (autoplay) {
@@ -172,7 +188,7 @@ function createArtwork(canvas, params = {}) {
       draw();
     },
     getPresets: () => presets,
-    triggerIntroSwap (ev) {
+    triggerIntroSwap(ev) {
       traverse('onTrigger', 'introSwap', ev);
     },
     clear,
@@ -205,8 +221,8 @@ function createArtwork(canvas, params = {}) {
 
   return api;
 
-  function setupIntroClick (cb) {
-    const text = document.querySelector('.canvas-text')
+  function setupIntroClick(cb) {
+    const text = document.querySelector('.canvas-text');
     if (text) text.textContent = 'Click to play';
 
     const done = () => {
@@ -219,18 +235,18 @@ function createArtwork(canvas, params = {}) {
     window.addEventListener('touchend', done);
   }
 
-  function startIntroSequence (opts = {}) {
+  function startIntroSequence(opts = {}) {
     app.audio.play();
     app.audio.fadeIn();
     startIntroText(api, opts);
   }
 
-  function setBackground (color) {
+  function setBackground(color) {
     background.set(color);
     renderer.setClearColor(background, 1);
   }
 
-  function setPreset (key) {
+  function setPreset(key) {
     const newPreset = presets[key] || presets.default;
     const oldPreset = Object.assign({}, app.preset);
     app.preset = Object.assign({}, newPreset);
@@ -239,7 +255,7 @@ function createArtwork(canvas, params = {}) {
     traverse('onPresetChanged', app.preset, oldPreset);
   }
 
-  function transitionBackground (color, opt = {}) {
+  function transitionBackground(color, opt = {}) {
     if (backgroundAnimation) backgroundAnimation.pause();
     const oldColor = background.clone();
     const newColor = new THREE.Color().set(color);
@@ -249,7 +265,7 @@ function createArtwork(canvas, params = {}) {
       targets: tween,
       value: 1,
       duration: defined(opt.duration, 5000),
-      easing: defined(opt.easing, [ .12,.93,.12,.93 ]),
+      easing: defined(opt.easing, [0.12, 0.93, 0.12, 0.93]),
       update: () => {
         tmpColor.copy(oldColor).lerp(newColor, tween.value);
         setBackground(tmpColor);
@@ -257,7 +273,7 @@ function createArtwork(canvas, params = {}) {
     });
   }
 
-  function transitionToPreset (key) {
+  function transitionToPreset(key) {
     const newPreset = presets[key] || presets.default;
     const oldPreset = Object.assign({}, app.preset);
     app.preset = Object.assign({}, newPreset);
@@ -388,7 +404,7 @@ function createArtwork(canvas, params = {}) {
     const frameInterval = 1 / tickFPS;
     const deltaSinceTick = time - lastTickTime;
     if (deltaSinceTick > frameInterval) {
-      lastTickTime = time - deltaSinceTick % frameInterval;
+      lastTickTime = time - (deltaSinceTick % frameInterval);
       traverse('frame', tickFrame++, time);
     }
 
