@@ -39,6 +39,19 @@ canvas {
   position: absolute;
 }
 
+.canvas-big-text:not(:empty) + .canvas-text {
+  top: calc(50% - 2.5vmax);
+}
+
+.canvas-big-text {
+  font-size: 3.75vmax;
+  text-align: center;
+  width: 27vw;
+  user-select: none;
+  position: absolute;
+  top: calc(50% - 1.0vmax);
+}
+
 .canvas-text p {
   margin: 0;
   line-height: 1.5;
