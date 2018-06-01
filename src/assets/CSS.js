@@ -5,6 +5,10 @@ module.exports = `
     font-weight: 500;
   }
 
+  body {
+    overflow: hidden;
+  }
+
   html {
     font-family: 'Domus', Helvetica, sans-serif;
     display: flex;
@@ -20,6 +24,7 @@ module.exports = `
     top: 0.25vmax;
     left: -0.75vmax;
     width: 100%;
+    pointer-events: none;
     height: 100%;
     display: flex;
     justify-content: center;
@@ -29,6 +34,7 @@ module.exports = `
   .canvas-text {
     font-size: 1.0vmax;
     text-align: center;
+    
     width: 15vw;
     user-select: none;
     position: absolute;
@@ -46,6 +52,10 @@ module.exports = `
     user-select: none;
     position: absolute;
     top: calc(50% - 1.0vmax);
+  }
+
+  canvas {
+    cursor: none;
   }
 
   .canvas-text p {
