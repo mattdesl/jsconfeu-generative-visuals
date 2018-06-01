@@ -73,7 +73,7 @@ function createArtwork(canvas, params = {}) {
   // scene.backgroundValue = app.colorPalette.background;
   // scene.background = new THREE.Color(scene.backgroundValue);
 
-  const isIntroDefault = true;
+  const isIntroDefault = false;
   const isInitiallyIntro = defined(params.intro, query.intro, isIntroDefault);
   const defaultPreset = isInitiallyIntro ? 'intro0' : 'default';
   const initialPresetKey = defined(params.preset, query.preset, defaultPreset);
