@@ -3,13 +3,9 @@ const query = require('./util/query');
 const createArtwork = require('./createArtwork');
 const keycode = require('keycode');
 const canvas = document.querySelector('#canvas');
-const isFullscreen = !!query.fullscreen;
 
 // Create the API. You should only create this once and re-use it.
 const artwork = createArtwork(canvas, {
-  // In the staging link prototype, test with a fixed aspect ratio
-  // In your redux/react app, set this to true to get full width/height
-  fullscreen: isFullscreen
 });
 
 artwork.onFinishIntro = () => {

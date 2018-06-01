@@ -42,9 +42,10 @@ const makeMaterialTypesWeights = (mode, opt = {}) => {
 };
 
 const makeScale = ({ mode, materialType }) => {
+  if (mode === 'ambient' && materialType === 'fill') return RND.randomFloat(0.5, 1);
   return RND.weighted([
-    { weight: 100, value: RND.randomFloat(0.5, 2.5) },
-    { weight: 50, value: RND.randomFloat(0.5, 3) }
+    { weight: 100, value: RND.randomFloat(0.5, 1.0) },
+    { weight: 50, value: RND.randomFloat(0.5, 2) }
   ]);
   // if (RND.randomFloat(1) > 0.75) return RND.randomFloat(0.5, 3);
   // return RND.randomFloat(0.5, 3.0);
@@ -113,7 +114,8 @@ module.exports = class MainScene extends THREE.Object3D {
       return mesh;
     });
 
-    this.textCollider = colliderCircle({ radius: 1.8 });
+    this.textCollider = colliderCircle({ radius: 0.85 });
+    this.textCollider.center.x = -0.1;
     if (this.textCollider.mesh) this.add(this.textCollider.mesh);
   }
 
@@ -192,7 +194,7 @@ module.exports = class MainScene extends THREE.Object3D {
     if (dense) positions.sort((a, b) => b.collisions - a.collisions);
     else positions.sort((a, b) => a.collisions - b.collisions);
 
-    const p = positions[0].position.multiplyScalar(RND.randomFloat(0.8, 1.2));
+    const p = positions[0].position.multiplyScalar(RND.randomFloat(0.5, 1.2));
 
     // ensure it doesn't spawn right in center
     const deltaTxtSq = p.distanceToSquared(textSphere.center);
@@ -204,8 +206,6 @@ module.exports = class MainScene extends THREE.Object3D {
       p.addScaledVector(dir, textSphere.radius);
     }
 
-    // const scalar = RND.randomFloat(0.85, 1.0);
-    // p.multiplyScalar(scalar);
     return p;
   }
 

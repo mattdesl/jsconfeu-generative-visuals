@@ -8,7 +8,7 @@ module.exports = `
   html {
     font-family: 'Domus', Helvetica, sans-serif;
     display: flex;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: center;
     height: 100%;
     width: 100%;
@@ -17,8 +17,8 @@ module.exports = `
   .canvas-text-container {
     position: absolute;
     color: white;
-    top: 0;
-    left: 0;
+    top: 0.25vmax;
+    left: -0.75vmax;
     width: 100%;
     height: 100%;
     display: flex;
@@ -27,19 +27,20 @@ module.exports = `
   }
 
   .canvas-text {
-    font-size: 1.75vmax;
+    font-size: 1.0vmax;
     text-align: center;
-    width: 27vw;
+    width: 15vw;
     user-select: none;
     position: absolute;
   }
 
+
   .canvas-big-text:not(:empty) + .canvas-text {
-    top: calc(50% - 2.5vmax);
+    top: calc(50% - 1.75vmax);
   }
 
   .canvas-big-text {
-    font-size: 3.75vmax;
+    font-size: 2.5vmax;
     text-align: center;
     width: 27vw;
     user-select: none;
@@ -55,7 +56,7 @@ module.exports = `
   .text-chunk {
     display: inline-block;
     position: relative;
-    margin-right: 3px;
-    margin-left: 3px;
+    margin-right: 0.15vmax;
+    margin-left: 0.15vmax;
   }
 `;

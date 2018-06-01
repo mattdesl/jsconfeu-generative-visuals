@@ -30,7 +30,7 @@ function createArtwork(canvas, params = {}) {
   // const targetAspect = 1416 / 334
 
   // You can also test full screen, it will give a different look...
-  const useFullscreen = defined(params.fullscreen, query.fullscreen, false);
+  const useFullscreen = defined(params.fullscreen, query.fullscreen, true);
   const autoplay = defined(params.autoplay, query.autoplay, true);
 
   const renderer = new THREE.WebGLRenderer({ antialias: true, canvas });
@@ -73,7 +73,8 @@ function createArtwork(canvas, params = {}) {
   // scene.backgroundValue = app.colorPalette.background;
   // scene.background = new THREE.Color(scene.backgroundValue);
 
-  const isInitiallyIntro = defined(params.intro, query.intro, false);
+  const isIntroDefault = true;
+  const isInitiallyIntro = defined(params.intro, query.intro, isIntroDefault);
   const defaultPreset = isInitiallyIntro ? 'intro0' : 'default';
   const initialPresetKey = defined(params.preset, query.preset, defaultPreset);
 
@@ -135,7 +136,8 @@ function createArtwork(canvas, params = {}) {
       // scene.background = new THREE.Color(scene.backgroundValue);
       // repeated code ends here
 
-      app.intro = opt.intro;
+      const introMode = defined(opt.intro, isIntroDefault);
+      app.intro = introMode;
 
       if (!hasInit) {
         needsStart = true;
@@ -148,7 +150,7 @@ function createArtwork(canvas, params = {}) {
         if (needsStart) {
           traverse('onTrigger', 'start', opt);
         }
-        if (opt.intro) {
+        if (introMode) {
           setPreset('intro0');
           setBackground('#000');
           transitionBackground(presets.intro0.background, {
@@ -171,7 +173,7 @@ function createArtwork(canvas, params = {}) {
         return style;
       };
 
-      if (opt.intro) {
+      if (introMode) {
         styleEl = setupCSS();
 
         setBackground('#000');
@@ -283,16 +285,23 @@ function createArtwork(canvas, params = {}) {
   }
 
   function resize(width, height, pixelRatio) {
-    width = defined(width, window.innerWidth);
-    if (useFullscreen) {
-      height = defined(height, window.innerHeight);
+    if (query.test) {
+      width = defined(width, window.innerWidth);
+      height = useFullscreen ? window.innerHeight : Math.floor(width / targetAspect);
+    } else if (useFullscreen) {
+      // width =
+      width = 6540;
+      height = window.innerHeight;
     } else {
-      height = Math.floor(width / targetAspect);
+      
     }
+
     pixelRatio = defined(pixelRatio, window.devicePixelRatio);
 
     if (renderer.getPixelRatio() !== pixelRatio) renderer.setPixelRatio(pixelRatio);
     renderer.setSize(width, height);
+    const el = document.querySelector('.canvas-text-container');
+    el.style.width = `${width}px`;
 
     const aspect = width / height;
     camera.scale.x = aspect;
