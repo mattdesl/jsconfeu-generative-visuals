@@ -7,6 +7,7 @@ module.exports = `
 
   body {
     overflow: hidden;
+    background: #303f62;
   }
 
   html {

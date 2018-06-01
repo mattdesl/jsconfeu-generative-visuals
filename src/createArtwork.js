@@ -90,7 +90,7 @@ function createArtwork(canvas, params = {}) {
     },
     onFadeOutIntro: () => {
       traverse('onTrigger', 'fadeOut');
-      transitionBackground('#000', {
+      transitionBackground(presets.intro0.background, {
         easing: 'linear',
         duration: 2000
       });
@@ -176,7 +176,7 @@ function createArtwork(canvas, params = {}) {
       if (introMode) {
         styleEl = setupCSS();
 
-        setBackground('#000');
+        setBackground(presets.intro0.background);
         draw();
         if (autoplay) {
           runStart();
