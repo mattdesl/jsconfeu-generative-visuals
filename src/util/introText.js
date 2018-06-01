@@ -13,7 +13,7 @@ module.exports = function(api, params = {}) {
     { preset: 'intro3', text: 'And supported by the Chrome team' },
     { preset: 'intro4', text: '{ live: js } Network' },
     { preset: 'intro5', text: 'Nested Loops' },
-    { preset: 'default', text: 'Curated by Feli, Holger, Jan, Malte, Megan & Simone' },
+    { preset: 'intro6', text: 'Curated by Feli, Holger, Jan, Malte, Megan & Simone' },
     { text: 'Welcome to', bigText: 'JSConf EU 2018' }
   ];
 
