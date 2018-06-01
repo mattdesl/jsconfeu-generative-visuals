@@ -152,11 +152,11 @@ function createArtwork(canvas, params = {}) {
         }
         if (introMode) {
           setPreset('intro0');
-          setBackground('#000');
-          transitionBackground(presets.intro0.background, {
-            easing: 'linear',
-            duration: 2000
-          });
+          setBackground(presets.intro0.background);
+          // transitionBackground(presets.intro0.background, {
+          //   easing: 'linear',
+          //   duration: 2000
+          // });
           startIntroSequence({
             delay: 3000
           });
