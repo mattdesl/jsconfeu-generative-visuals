@@ -117,6 +117,11 @@ module.exports = class MainScene extends THREE.Object3D {
     this.textCollider = colliderCircle({ radius: 0.85 });
     this.textCollider.center.x = -0.1;
     if (this.textCollider.mesh) this.add(this.textCollider.mesh);
+    this.updatePresetRadius();
+  }
+
+  updatePresetRadius () {
+    this.textCollider.radius = this.app.preset.mode === 'intro' ? 0.85 : 0.25;
   }
 
   clear() {
@@ -407,6 +412,7 @@ module.exports = class MainScene extends THREE.Object3D {
   onPresetChanged (preset, oldPreset) {
     this.running = true;
     console.log('changed')
+
     // Preset has 'hard' changed, i.e. flash to new content
     this.pool.forEach(shape => {
       if (!shape.active) return;
@@ -415,6 +421,7 @@ module.exports = class MainScene extends THREE.Object3D {
     });
     this.stop(); // cancel all waiting tweens!
     this.emitInitial();
+    this.updatePresetRadius();
   }
 
   onPresetTransition (preset, oldPreset) {
@@ -445,6 +452,7 @@ module.exports = class MainScene extends THREE.Object3D {
 
     // Set new capacity without killing existing
     this.trimCapacity();
+    this.updatePresetRadius();
   }
 
   onTrigger(event, args) {
