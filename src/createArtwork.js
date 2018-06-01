@@ -95,7 +95,7 @@ function createArtwork(canvas, params = {}) {
         duration: 2000
       });
       app.audio.fadeOut(() => {
-        api.onFinishIntro();
+        app.onFinishIntro();
         if (styleEl) {
           document.getElementsByTagName('head')[0].removeChild(styleEl);
         }
