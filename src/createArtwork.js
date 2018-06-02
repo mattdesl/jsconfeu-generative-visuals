@@ -207,10 +207,10 @@ function createArtwork(canvas, params = {}) {
       traverse('onTrigger', 'palette');
     },
     hide() {
-      canvas.style.visibility = 'hidden';
+      // canvas.style.visibility = 'hidden';
     },
     show() {
-      canvas.style.visibility = '';
+      // canvas.style.visibility = '';
     },
     // set to match text position to be repelled
     setTextPosition(x, y, radius = 1) {

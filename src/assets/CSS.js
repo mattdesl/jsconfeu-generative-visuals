@@ -10,6 +10,10 @@ module.exports = `
     background: #303f62;
   }
 
+  .canvas-container {
+    background: #303f62;
+  }
+
   html {
     font-family: 'Domus', Helvetica, sans-serif;
     display: flex;
