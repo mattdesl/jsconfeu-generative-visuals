@@ -43,12 +43,11 @@ module.exports = function () {
   // biquadFilter.gain.setValueAtTime(1, context.currentTime)
 
   biquadFilter.connect(analyser);
-  // biquadFilter.connect(context.destination);
 
   const lowpass = context.createBiquadFilter();
   lowpass.type = 'lowpass';
   lowpass.frequency.setValueAtTime(200, context.currentTime);
-  lowpass.connect(context.destination);
+  // lowpass.connect(context.destination);
 
   player.node.connect(lowpass);
   player.node.connect(biquadFilter);

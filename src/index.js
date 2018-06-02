@@ -8,9 +8,9 @@ const canvas = document.querySelector('#canvas');
 const artwork = createArtwork(canvas, {
 });
 
-artwork.onFinishIntro = () => {
-  artwork.transitionToPreset('default');
-};
+// artwork.onFinishIntro = () => {
+//   artwork.transitionToPreset('default');
+// };
 
 // Some time before start(), we need to set the initial size
 artwork.resize();

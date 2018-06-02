@@ -2,6 +2,7 @@ const RND = require('../util/random');
 const ZigZag = require('../object/ZigZag');
 const newArray = require('new-array');
 const pickColors = require('../util/pickColors');
+const presets = require('../scene/presets');
 
 function pointOutsideRect([x, y], [rw, rh]) {
   return x > rw || x < -rw || y > rh || y < -rh;
@@ -50,7 +51,7 @@ module.exports = class ZigZagScene extends THREE.Object3D {
     if (event === 'fadeOut') {
       this.running = false;
       this.pool.forEach(s => {
-        s.transitionColor('#000');
+        s.transitionColor(presets.intro0.background);
       });
     } else if (event === 'randomize') {
       // recreate pool to get new random zigzags
