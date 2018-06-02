@@ -254,7 +254,6 @@ function createArtwork(canvas, params = {}) {
     app.preset = Object.assign({}, newPreset);
     app.presetKey = key;
     app.intro = /intro/i.test(app.preset.mode);
-    console.log('yes', app.intro);
     setBackground(app.preset.background);
     traverse('onPresetChanged', app.preset, oldPreset);
   }
