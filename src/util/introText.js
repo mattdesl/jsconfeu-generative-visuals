@@ -10,8 +10,8 @@ module.exports = function(api, params = {}) {
     { preset: 'intro0', text: 'SinnerSchrader, Greenkeeper, Cobot & The AMP Project present' },
     { preset: 'intro1', text: 'A JSConf International production' },
     { preset: 'intro2', text: 'In cooperation with wwwtf.berlin' },
-    { preset: 'intro3', text: 'And supported by the Chrome team' },
-    { preset: 'intro4', text: '{ live: js } Network' },
+    { preset: 'intro3', text: 'And supported by the Chrome team', shorter: true },
+    { preset: 'intro4', text: '{ live : js } Network and 2xAA' },
     { preset: 'intro5', text: 'Nested Loops' },
     { preset: 'intro6', text: 'Curated by Feli, Holger, Jan, Malte, Megan & Simone' },
     { text: 'Welcome to', bigText: 'JSConf EU 2018' }
@@ -76,6 +76,8 @@ module.exports = function(api, params = {}) {
       updateClip(s, 0);
       // s.style.transform = `translateY(-40px)`;
     });
+
+    textEl.style.width = item.shorter ? '13vw' : '15vw';
 
     const stagger = 20;
     const delayFn = (el, i) => {

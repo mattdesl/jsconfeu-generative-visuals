@@ -40,7 +40,6 @@ module.exports = `
     font-size: 1.0vmax;
     text-align: center;
     
-    width: 15vw;
     user-select: none;
     position: absolute;
   }
