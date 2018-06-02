@@ -253,6 +253,8 @@ function createArtwork(canvas, params = {}) {
     const oldPreset = Object.assign({}, app.preset);
     app.preset = Object.assign({}, newPreset);
     app.presetKey = key;
+    app.intro = /intro/i.test(app.preset.mode);
+    console.log('yes', app.intro);
     setBackground(app.preset.background);
     traverse('onPresetChanged', app.preset, oldPreset);
   }
@@ -280,6 +282,7 @@ function createArtwork(canvas, params = {}) {
     const oldPreset = Object.assign({}, app.preset);
     app.preset = Object.assign({}, newPreset);
     app.presetKey = key;
+    app.intro = /intro/i.test(app.preset.mode);
     transitionBackground(app.preset.background);
     traverse('onPresetTransition', app.preset, oldPreset);
   }
