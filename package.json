@@ -1,5 +1,5 @@
 {
-  "name": "jsconf-eu-prototype",
+  "name": "jsconfeu-generative-visuals",
   "version": "1.0.0",
   "description": "",
   "main": "./dist/build.js",
@@ -78,10 +78,10 @@
   "keywords": [],
   "repository": {
     "type": "git",
-    "url": "git://github.com/mattdesl/jsconf-eu-prototype.git"
+    "url": "git://github.com/mattdesl/jsconfeu-generative-visuals.git"
   },
-  "homepage": "https://github.com/mattdesl/jsconf-eu-prototype",
+  "homepage": "https://github.com/mattdesl/jsconfeu-generative-visuals",
   "bugs": {
-    "url": "https://github.com/mattdesl/jsconf-eu-prototype/issues"
+    "url": "https://github.com/mattdesl/jsconfeu-generative-visuals/issues"
   }
 }
