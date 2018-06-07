@@ -30,10 +30,10 @@ Taken from in browser:
 
 To run it live in your browser, try the following links. We have only tested this on desktop Chrome.
 
-- Generative Visuals
-  https://mattdesl.github.io/jsconfeu-generative-visuals/public/
-- Intro Mode
-  https://mattdesl.github.io/jsconfeu-generative-visuals/public/?intro&autoplay=false
+- [Generative Mode](https://mattdesl.github.io/jsconfeu-generative-visuals/public/)
+- [Intro Mode](https://mattdesl.github.io/jsconfeu-generative-visuals/public/?intro&autoplay=false)
+
+In Generative Mode, try pushing 1, 2 or 3 on your keyboard to transition colour palettes and states.
 
 ## How to Install
 
