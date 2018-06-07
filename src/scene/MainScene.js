@@ -121,7 +121,7 @@ module.exports = class MainScene extends THREE.Object3D {
   }
 
   updatePresetRadius () {
-    this.textCollider.radius = this.app.preset.mode === 'intro' ? 0.85 : 0.25;
+    this.textCollider.radius = this.app.preset.mode === 'intro' ? 0.85 : 0.5;
   }
 
   clear() {
@@ -250,6 +250,7 @@ module.exports = class MainScene extends THREE.Object3D {
 
     // randomize position and scale
     let scale = makeScale({ mode: preset.mode, materialType: materialProps.materialType });
+    scale *= 1.5;
     if (materialProps.materialType === 'stroke') {
       scale = RND.randomFloat(0.75, 1.25);
     }
@@ -271,6 +272,7 @@ module.exports = class MainScene extends THREE.Object3D {
     if (materialProps.materialType === 'stroke') {
       p.multiplyScalar(RND.randomFloat(0.5, 1));
     }
+    p.multiplyScalar(RND.randomFloat(0.85, 1.15));
     object.position.set(p.x, p.y, 0);
 
     let randomDirection;

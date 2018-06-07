@@ -137,7 +137,11 @@ module.exports = class ZigZag extends BaseObject {
 
   update(time) {
     if (!this.initTime) this.initTime = time;
-    if (time - this.initTime < this.delay) return;
+    if (time - this.initTime < this.delay) {
+      this.mesh.material.visible = false;
+      return;
+    }
+    this.mesh.material.visible = true;
 
     this.zigZagIdx += this.speed;
     this.line.setGeometry(this.getLineGeometry(this.zigZagIdx));

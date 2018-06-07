@@ -1,8 +1,8 @@
 const defaultIntroSettings = {
   foreground: '#FFFFFF',
   mode: 'intro',
-  capacity: 55,
-  initialCapacity: 55,
+  capacity: 30,
+  initialCapacity: 30,
   zigZagCapacity: 0
 };
 
@@ -10,9 +10,9 @@ const generative = {
   mode: 'default',
   background: '#f3ecda',
   foreground: '#304061',
-  capacity: 45,
-  initialCapacity: 45,
-  zigZagCapacity: 5,
+  capacity: 30,
+  initialCapacity: 30,
+  zigZagCapacity: 1,
   colors: [
     { weight: 100, value: '#e10079' },
     { weight: 100, value: '#6058c5' },

@@ -3,6 +3,7 @@ const query = require('./util/query');
 const createArtwork = require('./createArtwork');
 const keycode = require('keycode');
 const canvas = document.querySelector('#canvas');
+const presets = require('./scene/presets');
 
 // Create the API. You should only create this once and re-use it.
 const artwork = createArtwork(canvas, {
@@ -28,11 +29,12 @@ artwork.load().then(() => {
   // show how to use the API a bit more
   window.addEventListener('keydown', ev => {
     const key = keycode(ev);
-    if (key === 'space') { // space
-      ev.preventDefault();
-      // Toggle play/pause
-      if (artwork.isRunning()) artwork.stop();
-      else artwork.start();
+    if (key === '1') {
+      artwork.transitionToPreset('default');
+    } else if (key === '2') {
+      artwork.transitionToPreset('ambient');
+    } else if (key === '3') {
+      artwork.transitionToPreset('intro0');
     }
   });
 });

@@ -1,3 +1,5 @@
+// As a JS module for inter-play with the larger framework that is used
+// during projection mapping.
 module.exports = `
   @font-face {
     font-family: 'Domus';
@@ -8,6 +10,11 @@ module.exports = `
   body {
     overflow: hidden;
     background: #303f62;
+    height: 100%;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
 
   .canvas-container {
@@ -16,9 +23,6 @@ module.exports = `
 
   html {
     font-family: 'Domus', Helvetica, sans-serif;
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
     height: 100%;
     width: 100%;
   }
@@ -59,7 +63,8 @@ module.exports = `
   }
 
   canvas {
-    cursor: none;
+    /* Useful during projection mapping... */
+    /*cursor: none;*/
   }
 
   .canvas-text p {
