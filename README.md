@@ -28,7 +28,12 @@ Taken from in browser:
 
 ## Live Demo
 
-You can run it here:
+To run it live in your browser, try the following links. We have only tested this on desktop Chrome.
+
+- Generative Visuals
+  https://mattdesl.github.io/jsconfeu-generative-visuals/public/
+- Intro Mode
+  https://mattdesl.github.io/jsconfeu-generative-visuals/public/?intro&autoplay=false
 
 ## How to Install
 
