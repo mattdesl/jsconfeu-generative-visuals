@@ -18,6 +18,8 @@ A couple select photos below:
 
 ## Screen Shots
 
+Taken from in browser:
+
 ![pic1](./photos/render1.jpg)  
 
 ![pic2](./photos/render2.jpg)  
